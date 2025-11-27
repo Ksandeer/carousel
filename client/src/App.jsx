@@ -8,6 +8,8 @@ import LayersPanel from './components/LayersPanel';
 import ExportSettingsPanel from './components/ExportSettingsPanel';
 import ZoomControls from './components/ZoomControls';
 import TemplateLibrary from './components/TemplateLibrary';
+import useFontLoader from './hooks/useFontLoader';
+import { DEFAULT_FONT } from './constants/fonts';
 
 const SIZE_PRESETS = [
   { label: 'Custom Size', value: 'custom' },
@@ -104,6 +106,10 @@ function App() {
       fontWeight: 600,
       color: '#ffffff',
       textAlign: 'center',
+      fontFamily: DEFAULT_FONT,
+      lineHeight: 1.2,
+      letterSpacing: 0,
+      textTransform: 'none',
     };
   };
 
@@ -154,6 +160,14 @@ function App() {
   };
 
   const currentElement = useMemo(() => elements.find((el) => el.id === selectedId), [elements, selectedId]);
+
+  const fontsInUse = useMemo(() => {
+    return Array.from(
+      new Set(elements.filter((el) => el.type === 'text' && el.fontFamily).map((el) => el.fontFamily))
+    );
+  }, [elements]);
+
+  useFontLoader(fontsInUse);
 
   const handlePresetChange = (value) => {
     setSizePreset(value);
@@ -303,17 +317,3 @@ function App() {
           />
 
           <TemplateLibrary
-            templates={templates}
-            onLoad={loadTemplate}
-            currentTemplateId={currentTemplateId}
-            onCreateNew={handleCreateNewTemplate}
-          />
-
-          <ExportSettingsPanel settings={exportSettings} onChange={handleExportSettingChange} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default App;
