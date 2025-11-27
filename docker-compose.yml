@@ -1,0 +1,11 @@
+services:
+  export-html:
+    container_name: export-html
+    platform: linux/amd64
+    volumes:
+      - ./src:/service/src
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "2305:2305"
