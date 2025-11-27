@@ -4,19 +4,23 @@ ARG NODE_ENV=production
 
 WORKDIR /service
 
-COPY package.json /service/package.json
-COPY yarn.lock /service/yarn.lock
+# Install backend dependencies first to leverage Docker layer cache.
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
 
-RUN yarn install --frozen-lockfile;
+# Install frontend dependencies separately so we can build the static bundle.
+COPY client/package.json client/package-lock.json ./client/
+WORKDIR /service/client
+RUN npm install --unsafe-perm
 
-# Copy app source
+# Copy the full source tree and build the frontend bundle.
+WORKDIR /service
 COPY . .
+WORKDIR /service/client
+RUN npm run build
 
-# set your port
+# Final runtime configuration.
+WORKDIR /service
 ENV PORT 2305
-
-# expose the port to outside world
 EXPOSE 2305
-
-# start command as per package.json
 CMD ["node", "src/index"]
