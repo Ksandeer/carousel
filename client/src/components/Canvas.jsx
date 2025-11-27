@@ -29,6 +29,9 @@ export default function Canvas({
       if (!interaction || interaction.type !== 'drag') {
         return;
       }
+      if (interaction.pointerId !== undefined && event.pointerId !== interaction.pointerId) {
+        return;
+      }
       const deltaX = (event.clientX - interaction.startClientX) / zoom;
       const deltaY = (event.clientY - interaction.startClientY) / zoom;
       const nextX = clamp(interaction.originX + deltaX, 0, Math.max(0, width - interaction.width));
@@ -38,16 +41,28 @@ export default function Canvas({
     [onUpdate, width, height, zoom]
   );
 
-  const handlePointerUp = useCallback(function onPointerUp() {
-    interactionRef.current = null;
-    window.removeEventListener('pointermove', handlePointerMove);
-    window.removeEventListener('pointerup', onPointerUp);
-  }, [handlePointerMove]);
+  const handlePointerUp = useCallback(
+    function onPointerUp(event) {
+      const interaction = interactionRef.current;
+      if (!interaction) {
+        return;
+      }
+      if (interaction.pointerId !== undefined && event.pointerId !== interaction.pointerId) {
+        return;
+      }
+      interaction.captureTarget?.releasePointerCapture?.(interaction.pointerId);
+      interactionRef.current = null;
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+    },
+    [handlePointerMove]
+  );
 
   const startDrag = useCallback(
     (event, element) => {
       if (event.button !== 0) return;
       event.stopPropagation();
+      event.preventDefault();
       onSelect(element.id);
       interactionRef.current = {
         type: 'drag',
@@ -59,7 +74,9 @@ export default function Canvas({
         originY: element.y,
         width: element.width,
         height: element.height,
+        captureTarget: event.currentTarget,
       };
+      event.currentTarget.setPointerCapture?.(event.pointerId);
       window.addEventListener('pointermove', handlePointerMove);
       window.addEventListener('pointerup', handlePointerUp);
     },
