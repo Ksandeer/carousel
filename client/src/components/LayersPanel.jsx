@@ -18,7 +18,7 @@ export default function LayersPanel({
       <header className="flex items-center justify-between mb-3">
         <div>
           <p className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Layers</p>
-          <p className="text-xs text-gray-500">Drag handles to reorder your layout</p>
+          <p className="text-xs text-gray-500">Use arrows to adjust stacking order</p>
         </div>
         <span className="text-xs text-gray-400">{elements.length}</span>
       </header>
