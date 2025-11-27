@@ -1,11 +1,20 @@
 import React from 'react';
 
-export default function TemplateLibrary({ templates, onLoad, currentTemplateId }) {
+export default function TemplateLibrary({ templates, onLoad, currentTemplateId, onCreateNew }) {
   return (
     <section>
-      <header className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold text-purple-900 uppercase">Template library</h3>
-        <span className="text-xs text-gray-500">{templates.length}</span>
+      <header className="flex items-center justify-between mb-3">
+        <div>
+          <h3 className="text-sm font-semibold text-purple-900 uppercase">Template library</h3>
+          <p className="text-xs text-gray-500">Saved layouts ({templates.length})</p>
+        </div>
+        <button
+          type="button"
+          onClick={onCreateNew}
+          className="text-xs font-semibold text-purple-700 border border-purple-200 rounded-full px-3 py-1 hover:bg-purple-50"
+        >
+          + New template
+        </button>
       </header>
       <div className="space-y-2 max-h-64 overflow-auto pr-1">
         {templates.map((template) => {
