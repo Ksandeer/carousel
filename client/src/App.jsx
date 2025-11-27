@@ -239,6 +239,16 @@ function App() {
     setExportSettings((prev) => ({ ...prev, [key]: value }));
   };
 
+  const handleCreateNewTemplate = () => {
+    setTemplateName('My Template');
+    setCanvasSize({ width: 1600, height: 2000 });
+    setElements([]);
+    setSelectedId(null);
+    setCurrentTemplateId(null);
+    setExportSettings(DEFAULT_EXPORT_SETTINGS);
+    setSizePreset('poster');
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       <DesignerTopBar
@@ -292,7 +302,12 @@ function App() {
             onChange={(updates) => currentElement && updateElement(currentElement.id, updates)}
           />
 
-          <TemplateLibrary templates={templates} onLoad={loadTemplate} currentTemplateId={currentTemplateId} />
+          <TemplateLibrary
+            templates={templates}
+            onLoad={loadTemplate}
+            currentTemplateId={currentTemplateId}
+            onCreateNew={handleCreateNewTemplate}
+          />
 
           <ExportSettingsPanel settings={exportSettings} onChange={handleExportSettingChange} />
         </div>
