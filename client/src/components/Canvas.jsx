@@ -27,17 +27,50 @@ export default function Canvas({
   const handlePointerMove = useCallback(
     (event) => {
       const interaction = interactionRef.current;
-      if (!interaction || interaction.type !== 'drag') {
-        return;
-      }
+      if (!interaction) return;
       if (interaction.pointerId !== undefined && event.pointerId !== interaction.pointerId) {
         return;
       }
+
       const deltaX = (event.clientX - interaction.startClientX) / zoom;
       const deltaY = (event.clientY - interaction.startClientY) / zoom;
-      const nextX = clamp(interaction.originX + deltaX, 0, Math.max(0, width - interaction.width));
-      const nextY = clamp(interaction.originY + deltaY, 0, Math.max(0, height - interaction.height));
-      onUpdate(interaction.id, { x: Math.round(nextX), y: Math.round(nextY) });
+
+      if (interaction.type === 'drag') {
+        const nextX = clamp(interaction.originX + deltaX, 0, Math.max(0, width - interaction.width));
+        const nextY = clamp(interaction.originY + deltaY, 0, Math.max(0, height - interaction.height));
+        onUpdate(interaction.id, { x: Math.round(nextX), y: Math.round(nextY) });
+      } else if (interaction.type === 'resize') {
+        const handle = interaction.handle;
+        let newX = interaction.originX;
+        let newY = interaction.originY;
+        let newWidth = interaction.originWidth;
+        let newHeight = interaction.originHeight;
+
+        // Calculate new dimensions based on handle
+        if (handle.includes('e')) {
+          newWidth = Math.max(20, interaction.originWidth + deltaX);
+        }
+        if (handle.includes('w')) {
+          const proposedWidth = Math.max(20, interaction.originWidth - deltaX);
+          newX = interaction.originX + (interaction.originWidth - proposedWidth);
+          newWidth = proposedWidth;
+        }
+        if (handle.includes('s')) {
+          newHeight = Math.max(20, interaction.originHeight + deltaY);
+        }
+        if (handle.includes('n')) {
+          const proposedHeight = Math.max(20, interaction.originHeight - deltaY);
+          newY = interaction.originY + (interaction.originHeight - proposedHeight);
+          newHeight = proposedHeight;
+        }
+
+        onUpdate(interaction.id, {
+          x: Math.round(newX),
+          y: Math.round(newY),
+          width: Math.round(newWidth),
+          height: Math.round(newHeight),
+        });
+      }
     },
     [onUpdate, width, height, zoom]
   );
@@ -80,6 +113,30 @@ export default function Canvas({
     [onSelect]
   );
 
+  const startResize = useCallback(
+    (event, element, handle) => {
+      if (event.button !== 0) return;
+      event.stopPropagation();
+      event.preventDefault();
+      onSelect(element.id);
+      interactionRef.current = {
+        type: 'resize',
+        id: element.id,
+        handle,
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        originX: element.x,
+        originY: element.y,
+        originWidth: element.width,
+        originHeight: element.height,
+        captureTarget: event.currentTarget,
+      };
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    },
+    [onSelect]
+  );
+
   return (
     <div onClick={() => onSelect(null)}>
       <div
@@ -98,8 +155,8 @@ export default function Canvas({
             <div
               key={el.id}
               className={`absolute cursor-move transition-all duration-150 ${selectedId === el.id
-                  ? 'ring-2 ring-purple-400 shadow-lg'
-                  : 'ring-1 ring-transparent hover:ring-purple-200'
+                ? 'ring-2 ring-purple-400 shadow-lg'
+                : 'ring-1 ring-transparent hover:ring-purple-200'
                 }`}
               style={{
                 width: el.width,
@@ -125,6 +182,22 @@ export default function Canvas({
                 <div className="absolute -top-5 left-0 bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full">
                   {`{{${el.variableName}}}`}
                 </div>
+              )}
+
+              {/* Resize handles - only show for selected element */}
+              {selectedId === el.id && (
+                <>
+                  {/* Corner handles */}
+                  <ResizeHandle position="nw" onStart={(e) => startResize(e, el, 'nw')} />
+                  <ResizeHandle position="ne" onStart={(e) => startResize(e, el, 'ne')} />
+                  <ResizeHandle position="sw" onStart={(e) => startResize(e, el, 'sw')} />
+                  <ResizeHandle position="se" onStart={(e) => startResize(e, el, 'se')} />
+                  {/* Edge handles */}
+                  <ResizeHandle position="n" onStart={(e) => startResize(e, el, 'n')} />
+                  <ResizeHandle position="s" onStart={(e) => startResize(e, el, 's')} />
+                  <ResizeHandle position="w" onStart={(e) => startResize(e, el, 'w')} />
+                  <ResizeHandle position="e" onStart={(e) => startResize(e, el, 'e')} />
+                </>
               )}
             </div>
           ))}
@@ -193,6 +266,28 @@ function resolveAlignItems(value = 'top') {
   if (value === 'middle') return 'center';
   if (value === 'bottom') return 'flex-end';
   return 'flex-start';
+}
+
+function ResizeHandle({ position, onStart }) {
+  const positionStyles = {
+    nw: { top: -4, left: -4, cursor: 'nwse-resize' },
+    ne: { top: -4, right: -4, cursor: 'nesw-resize' },
+    sw: { bottom: -4, left: -4, cursor: 'nesw-resize' },
+    se: { bottom: -4, right: -4, cursor: 'nwse-resize' },
+    n: { top: -4, left: '50%', transform: 'translateX(-50%)', cursor: 'ns-resize' },
+    s: { bottom: -4, left: '50%', transform: 'translateX(-50%)', cursor: 'ns-resize' },
+    w: { top: '50%', left: -4, transform: 'translateY(-50%)', cursor: 'ew-resize' },
+    e: { top: '50%', right: -4, transform: 'translateY(-50%)', cursor: 'ew-resize' },
+  };
+
+  return (
+    <div
+      className="absolute w-2 h-2 bg-white border-2 border-purple-600 rounded-full hover:scale-150 transition-transform"
+      style={positionStyles[position]}
+      onPointerDown={onStart}
+      onClick={(e) => e.stopPropagation()}
+    />
+  );
 }
 
 function clamp(value, min, max) {
