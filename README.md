@@ -17,7 +17,7 @@ docker run -p 2305:2305 bedrockio/export-html
 ### Локальный запуск (для разработки)
 
 ```bash
-git clone git@github.com:bedrockio/export-html.git
+git clone https://github.com/karpix25/carousel_karlo.git
 cd export-html
 yarn install
 yarn start
