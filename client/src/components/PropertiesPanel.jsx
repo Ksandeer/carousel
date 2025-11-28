@@ -463,6 +463,85 @@ export default function PropertiesPanel({ element, onChange }) {
         </CollapsibleSection>
       )}
 
+      {/* Shadow Section */}
+      <CollapsibleSection
+        title="SHADOW"
+        isCollapsed={collapsedSections.shadow}
+        onToggle={() => toggleSection('shadow')}
+      >
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-xs text-gray-500">Enable Shadow</label>
+            <button
+              onClick={() => onChange({ shadow: element.shadow ? null : { color: '#000000', blur: 10, x: 0, y: 4 } })}
+              className={`w-12 h-6 rounded-full transition-colors relative ${element.shadow ? 'bg-purple-600' : 'bg-gray-200'}`}
+            >
+              <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${element.shadow ? 'left-7' : 'left-1'}`} />
+            </button>
+          </div>
+
+          {element.shadow && (
+            <>
+              <Field label="Color">
+                <div className="flex gap-2">
+                  <div
+                    className="w-10 h-10 rounded-lg border shadow-sm flex-shrink-0"
+                    style={{ backgroundColor: element.shadow.color || '#000000' }}
+                  >
+                    <input
+                      type="color"
+                      value={element.shadow.color || '#000000'}
+                      onChange={(e) => onChange({ shadow: { ...element.shadow, color: e.target.value } })}
+                      className="opacity-0 w-full h-full cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex-1 border rounded-lg flex items-center px-3 bg-gray-50">
+                    <span className="text-gray-400 mr-2">#</span>
+                    <input
+                      type="text"
+                      value={(element.shadow.color || '#000000').replace('#', '').toUpperCase()}
+                      onChange={(e) => onChange({ shadow: { ...element.shadow, color: `#${e.target.value}` } })}
+                      className="bg-transparent w-full outline-none text-sm font-mono"
+                    />
+                  </div>
+                </div>
+              </Field>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="X Offset">
+                  <input
+                    type="number"
+                    value={element.shadow.x || 0}
+                    onChange={(e) => onChange({ shadow: { ...element.shadow, x: parseInt(e.target.value) || 0 } })}
+                    className="w-full border rounded-lg px-3 py-2 text-sm"
+                  />
+                </Field>
+                <Field label="Y Offset">
+                  <input
+                    type="number"
+                    value={element.shadow.y || 0}
+                    onChange={(e) => onChange({ shadow: { ...element.shadow, y: parseInt(e.target.value) || 0 } })}
+                    className="w-full border rounded-lg px-3 py-2 text-sm"
+                  />
+                </Field>
+              </div>
+
+              <Field label="Blur Radius">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={element.shadow.blur || 0}
+                  onChange={(e) => onChange({ shadow: { ...element.shadow, blur: parseInt(e.target.value) } })}
+                  className="w-full accent-purple-600"
+                />
+                <div className="text-right text-xs text-gray-500">{element.shadow.blur || 0}px</div>
+              </Field>
+            </>
+          )}
+        </div>
+      </CollapsibleSection>
+
       {/* Shape Specific */}
       {isShape && (
         <CollapsibleSection

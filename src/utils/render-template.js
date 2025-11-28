@@ -16,13 +16,13 @@ function renderTemplate(template, data = {}) {
         width: ${el.width}px;
         height: ${el.height}px;
         opacity: ${el.opacity ?? 1};
-        overflow: hidden;
       `;
 
       if (el.type === 'image') {
         const source = resolveContent(el, data);
+        const shadowStyle = el.shadow ? `box-shadow: ${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'};` : '';
         return `
-          <div style="${style}">
+          <div style="${style} ${shadowStyle}">
             <img src="${source}" style="width: 100%; height: 100%; object-fit: ${el.fit || 'cover'}; border-radius: ${el.borderRadius || 0
           }px;" />
           </div>
@@ -30,9 +30,10 @@ function renderTemplate(template, data = {}) {
       }
 
       if (el.type === 'shape') {
+        const shadowStyle = el.shadow ? `box-shadow: ${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'};` : '';
         return `
           <div style="${style} background-color: ${el.backgroundColor || '#000'}; border-radius: ${el.borderRadius || 0
-          }px;"></div>
+          }px; ${shadowStyle}"></div>
         `;
       }
 
@@ -45,34 +46,39 @@ function renderTemplate(template, data = {}) {
         return parts.map(part => {
           if (part.startsWith('**') && part.endsWith('**')) {
             const content = part.slice(2, -2);
-            return ` <span style="background-color: ${highlightColor || '#ffeb3b'}; padding: 3px 8px; border-radius: 6px; display: inline;">${escapeHtml(content)}</span> `;
+            return ` <span style="background-color: ${highlightColor || '#ffeb3b'}; padding: 3px 8px; border-radius: 6px; display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone;">${escapeHtml(content)}</span> `;
           }
           return escapeHtml(part);
         }).join('');
       };
 
       const textContent = parseHighlightedText(rawText, el.highlightColor);
+      const shadowStyle = el.shadow ? `text-shadow: ${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'};` : '';
 
       return `
         <div style="${style}
-          font-family: ${getFontStackValue(el.fontFamily)};
-          font-size: ${el.fontSize || 16}px;
-          font-weight: ${el.fontWeight || 400};
-          font-style: ${el.fontStyle || 'normal'};
-          text-decoration: ${el.textDecoration || 'none'};
-          color: ${el.color || '#000'};
           background-color: ${el.backgroundColor || 'transparent'};
           display: flex;
           align-items: ${resolveVerticalAlignment(el.verticalAlign)};
-          justify-content: ${resolveAlignment(el.textAlign)};
-          text-align: ${el.textAlign || 'left'};
-          line-height: ${el.lineHeight || 1.2};
-          letter-spacing: ${formatLetterSpacing(el.letterSpacing)};
-          text-transform: ${el.textTransform || 'none'};
-          word-break: ${el.wordBreak ? 'break-all' : 'normal'};
-          white-space: pre-line;
         ">
-          ${textContent}
+          <div style="
+            width: 100%;
+            text-align: ${el.textAlign || 'left'};
+            font-family: ${getFontStackValue(el.fontFamily)};
+            font-size: ${el.fontSize || 16}px;
+            font-weight: ${el.fontWeight || 400};
+            font-style: ${el.fontStyle || 'normal'};
+            text-decoration: ${el.textDecoration || 'none'};
+            color: ${el.color || '#000'};
+            line-height: ${el.lineHeight || 1.2};
+            letter-spacing: ${formatLetterSpacing(el.letterSpacing)};
+            text-transform: ${el.textTransform || 'none'};
+            word-break: ${el.wordBreak ? 'break-all' : 'normal'};
+            white-space: pre-line;
+            ${shadowStyle}
+          ">
+            ${textContent}
+          </div>
         </div>
       `;
     })

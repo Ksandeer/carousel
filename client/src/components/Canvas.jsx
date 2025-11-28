@@ -214,7 +214,11 @@ function renderElementContent(el) {
         src={el.content}
         alt=""
         className="w-full h-full object-cover pointer-events-none"
-        style={{ objectFit: el.fit || 'cover', borderRadius: el.borderRadius || 0 }}
+        style={{
+          objectFit: el.fit || 'cover',
+          borderRadius: el.borderRadius || 0,
+          boxShadow: el.shadow ? `${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'}` : undefined,
+        }}
       />
     );
   }
@@ -226,6 +230,7 @@ function renderElementContent(el) {
         style={{
           backgroundColor: el.backgroundColor || '#333',
           borderRadius: el.borderRadius || 0,
+          boxShadow: el.shadow ? `${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'}` : undefined,
         }}
       />
     );
@@ -247,6 +252,8 @@ function renderElementContent(el) {
                 padding: '3px 8px',
                 borderRadius: '6px',
                 display: 'inline',
+                boxDecorationBreak: 'clone',
+                WebkitBoxDecorationBreak: 'clone',
               }}
             >
               {content}
@@ -263,24 +270,30 @@ function renderElementContent(el) {
     <div
       className="w-full h-full flex"
       style={{
-        fontSize: el.fontSize || 18,
-        color: el.color || '#fff',
-        backgroundColor: el.backgroundColor || 'transparent',
-        fontWeight: el.fontWeight || 400,
-        fontStyle: el.fontStyle || 'normal',
-        textDecoration: el.textDecoration || 'none',
-        textAlign: el.textAlign || 'left',
-        justifyContent: resolveJustify(el.textAlign),
         alignItems: resolveAlignItems(el.verticalAlign),
-        lineHeight: el.lineHeight || 1.2,
-        fontFamily: getFontStack(el.fontFamily),
-        letterSpacing: typeof el.letterSpacing === 'number' ? `${el.letterSpacing}px` : undefined,
-        textTransform: el.textTransform || 'none',
-        wordBreak: el.wordBreak ? 'break-all' : 'normal',
-        whiteSpace: 'pre-line',
+        backgroundColor: el.backgroundColor || 'transparent',
       }}
     >
-      {parseHighlightedText((el.content_preview || el.content || '').trim(), el.highlightColor)}
+      <div
+        style={{
+          width: '100%',
+          textAlign: el.textAlign || 'left',
+          fontSize: el.fontSize || 18,
+          color: el.color || '#fff',
+          fontWeight: el.fontWeight || 400,
+          fontStyle: el.fontStyle || 'normal',
+          textDecoration: el.textDecoration || 'none',
+          lineHeight: el.lineHeight || 1.2,
+          fontFamily: getFontStack(el.fontFamily),
+          letterSpacing: typeof el.letterSpacing === 'number' ? `${el.letterSpacing}px` : undefined,
+          textTransform: el.textTransform || 'none',
+          wordBreak: el.wordBreak ? 'break-all' : 'normal',
+          whiteSpace: 'pre-line',
+          textShadow: el.shadow ? `${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'}` : undefined,
+        }}
+      >
+        {parseHighlightedText((el.content_preview || el.content || '').trim(), el.highlightColor)}
+      </div>
     </div>
   );
 }
