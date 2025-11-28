@@ -1,4 +1,18 @@
 import React from 'react';
+import {
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  ArrowUpToLine,
+  ArrowDownToLine,
+  MoveVertical,
+  Type,
+  Check,
+} from 'lucide-react';
 import FONT_OPTIONS, { DEFAULT_FONT, getFontStack } from '../constants/fonts';
 
 export default function PropertiesPanel({ element, onChange }) {
@@ -20,222 +34,390 @@ export default function PropertiesPanel({ element, onChange }) {
     }
   };
 
+  const toggleStyle = (style) => {
+    if (style === 'bold') {
+      onChange({ fontWeight: element.fontWeight === 700 ? 400 : 700 });
+    } else if (style === 'italic') {
+      onChange({ fontStyle: element.fontStyle === 'italic' ? 'normal' : 'italic' });
+    } else if (style === 'underline') {
+      const current = element.textDecoration || 'none';
+      onChange({ textDecoration: current.includes('underline') ? current.replace('underline', '').trim() || 'none' : `${current} underline`.trim() });
+    } else if (style === 'strikethrough') {
+      const current = element.textDecoration || 'none';
+      onChange({ textDecoration: current.includes('line-through') ? current.replace('line-through', '').trim() || 'none' : `${current} line-through`.trim() });
+    }
+  };
+
   const currentFontFamily = element.fontFamily || DEFAULT_FONT;
 
+  const [showCustomFont, setShowCustomFont] = React.useState(false);
+
   return (
-    <div className="border rounded-2xl p-4 space-y-4">
-      <h3 className="text-sm font-semibold text-purple-900 uppercase">Element properties</h3>
-
-      <Field label="Variable name">
-        <input
-          type="text"
-          value={element.variableName || ''}
-          onChange={(e) => onChange({ variableName: e.target.value })}
-          className="w-full border rounded-lg px-3 py-2"
-          placeholder="e.g. product_name"
-        />
-      </Field>
-
-      {(isText || isImage) && (
-        <Field label={isText ? 'Text content' : 'Image URL'}>
-          {isText ? (
-            <textarea
-              value={element.content || ''}
-              onChange={(e) => onChange({ content: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2 h-24"
-            />
-          ) : (
-            <input
-              type="text"
-              value={element.content || ''}
-              onChange={(e) => onChange({ content: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2"
-            />
-          )}
-        </Field>
-      )}
-
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="X">
-          <input
-            type="number"
-            value={element.x}
-            onChange={(e) => handleNumberChange('x')(parseInt(e.target.value, 10))}
-            className="w-full border rounded-lg px-3 py-2"
-          />
-        </Field>
-        <Field label="Y">
-          <input
-            type="number"
-            value={element.y}
-            onChange={(e) => handleNumberChange('y')(parseInt(e.target.value, 10))}
-            className="w-full border rounded-lg px-3 py-2"
-          />
-        </Field>
-        <Field label="Width">
-          <input
-            type="number"
-            value={element.width}
-            onChange={(e) => handleNumberChange('width')(parseInt(e.target.value, 10))}
-            className="w-full border rounded-lg px-3 py-2"
-          />
-        </Field>
-        <Field label="Height">
-          <input
-            type="number"
-            value={element.height}
-            onChange={(e) => handleNumberChange('height')(parseInt(e.target.value, 10))}
-            className="w-full border rounded-lg px-3 py-2"
-          />
-        </Field>
-      </div>
-
-      <Field label="Opacity">
-        <input
-          type="range"
-          min={0.1}
-          max={1}
-          step={0.05}
-          value={element.opacity ?? 1}
-          onChange={(e) => onChange({ opacity: parseFloat(e.target.value) })}
-          className="w-full"
-        />
-      </Field>
-
+    <div className="border rounded-2xl p-4 space-y-6 bg-white">
       {isText && (
         <>
-          <Field label="Font family">
+          {/* TEXT STYLE SECTION */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-900 uppercase">TEXT STYLE</h3>
+            </div>
+
             <div className="space-y-2">
+              <label className="text-xs text-gray-500">Font</label>
               <select
                 value={currentFontFamily}
                 onChange={(e) => onChange({ fontFamily: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full border rounded-lg px-3 py-2 text-sm"
               >
                 {FONT_OPTIONS.map((font) => (
                   <option key={font.value} value={font.value}>
                     {font.label}
                   </option>
                 ))}
+                {!FONT_OPTIONS.find(f => f.value === currentFontFamily) && (
+                  <option value={currentFontFamily}>{currentFontFamily}</option>
+                )}
               </select>
-              <div
-                className="border rounded-lg px-3 py-2 text-sm text-gray-700"
-                style={{ fontFamily: getFontStack(currentFontFamily) }}
-              >
-                The quick brown fox
+
+              {showCustomFont ? (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter Google Font name..."
+                    className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        onChange({ fontFamily: e.currentTarget.value });
+                        setShowCustomFont(false);
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (e.target.value) onChange({ fontFamily: e.target.value });
+                    }}
+                  />
+                  <button
+                    onClick={() => setShowCustomFont(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowCustomFont(true)}
+                  className="text-purple-600 text-sm font-medium hover:underline"
+                >
+                  Upload Custom Font
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-gray-500">Color</label>
+              <div className="flex gap-2">
+                <div
+                  className="w-10 h-10 rounded-lg border shadow-sm flex-shrink-0"
+                  style={{ backgroundColor: element.color || '#ffffff' }}
+                >
+                  <input
+                    type="color"
+                    value={element.color || '#ffffff'}
+                    onChange={(e) => onChange({ color: e.target.value })}
+                    className="opacity-0 w-full h-full cursor-pointer"
+                  />
+                </div>
+                <div className="flex-1 border rounded-lg flex items-center px-3 bg-gray-50">
+                  <span className="text-gray-400 mr-2">#</span>
+                  <input
+                    type="text"
+                    value={(element.color || '').replace('#', '').toUpperCase()}
+                    onChange={(e) => onChange({ color: `#${e.target.value}` })}
+                    className="bg-transparent w-full outline-none text-sm font-mono"
+                  />
+                </div>
               </div>
             </div>
-          </Field>
-          <Field label="Font size">
-            <input
-              type="number"
-              value={element.fontSize || 16}
-              onChange={(e) => handleNumberChange('fontSize')(parseInt(e.target.value, 10))}
-              className="w-full border rounded-lg px-3 py-2"
-            />
-          </Field>
-          <Field label="Font weight">
-            <select
-              value={element.fontWeight || 400}
-              onChange={(e) => onChange({ fontWeight: parseInt(e.target.value, 10) })}
-              className="w-full border rounded-lg px-3 py-2"
-            >
-              {[300, 400, 500, 600, 700].map((weight) => (
-                <option key={weight} value={weight}>
-                  {weight}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Line height">
-              <input
-                type="number"
-                step="0.1"
-                min="0.8"
-                max="3"
-                value={element.lineHeight ?? 1.2}
-                onChange={(e) => handleNumberChange('lineHeight')(parseFloat(e.target.value))}
-                className="w-full border rounded-lg px-3 py-2"
-              />
-            </Field>
-            <Field label="Letter spacing (px)">
-              <input
-                type="number"
-                step="0.5"
-                min="-10"
-                max="20"
-                value={element.letterSpacing ?? 0}
-                onChange={(e) => handleNumberChange('letterSpacing')(parseFloat(e.target.value))}
-                className="w-full border rounded-lg px-3 py-2"
-              />
-            </Field>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-gray-500">Size</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={element.fontSize || 16}
+                    onChange={(e) => handleNumberChange('fontSize')(parseInt(e.target.value, 10))}
+                    className="w-full border rounded-lg px-3 py-2 text-sm pr-8"
+                  />
+                  <span className="absolute right-3 top-2 text-gray-400 text-xs">px</span>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-gray-500">Spacing</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={element.letterSpacing ?? 0}
+                    onChange={(e) => handleNumberChange('letterSpacing')(parseFloat(e.target.value))}
+                    className="w-full border rounded-lg px-3 py-2 text-sm pr-8"
+                  />
+                  <span className="absolute right-3 top-2 text-gray-400 text-xs">px</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-gray-500">Style</label>
+              <div className="flex gap-2">
+                <StyleButton
+                  active={element.fontStyle === 'italic'}
+                  onClick={() => toggleStyle('italic')}
+                  icon={<Italic size={18} />}
+                />
+                <StyleButton
+                  active={(element.textDecoration || '').includes('underline')}
+                  onClick={() => toggleStyle('underline')}
+                  icon={<Underline size={18} />}
+                />
+                <StyleButton
+                  active={(element.textDecoration || '').includes('line-through')}
+                  onClick={() => toggleStyle('strikethrough')}
+                  icon={<Strikethrough size={18} />}
+                />
+                <StyleButton
+                  active={element.fontWeight === 700}
+                  onClick={() => toggleStyle('bold')}
+                  icon={<Bold size={18} />}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-gray-500">Transform</label>
+              <select
+                value={element.textTransform || 'none'}
+                onChange={(e) => onChange({ textTransform: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="none">No Transformation</option>
+                <option value="uppercase">Uppercase</option>
+                <option value="lowercase">Lowercase</option>
+                <option value="capitalize">Capitalize</option>
+              </select>
+            </div>
           </div>
-          <Field label="Text transform">
-            <select
-              value={element.textTransform || 'none'}
-              onChange={(e) => onChange({ textTransform: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2"
-            >
-              {['none', 'uppercase', 'lowercase', 'capitalize'].map((transform) => (
-                <option key={transform} value={transform}>
-                  {transform}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Text align">
-            <select
-              value={element.textAlign || 'left'}
-              onChange={(e) => onChange({ textAlign: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2"
-            >
-              {['left', 'center', 'right'].map((align) => (
-                <option key={align} value={align}>
-                  {align}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Text color">
-            <input
-              type="color"
-              value={element.color || '#ffffff'}
-              onChange={(e) => onChange({ color: e.target.value })}
-              className="w-full h-10 border rounded-lg"
-            />
-          </Field>
+
+          <hr className="border-gray-100" />
+
+          {/* TEXTBOX SECTION */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold text-gray-900 uppercase">TEXTBOX</h3>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-gray-500">Line Height</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={element.lineHeight ?? 1.2}
+                  onChange={(e) => handleNumberChange('lineHeight')(parseFloat(e.target.value))}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-gray-500">Resizing</label>
+                <select className="w-full border rounded-lg px-3 py-2 text-sm" disabled>
+                  <option>Auto (Coming soon)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-gray-500">Background</label>
+              <div className="flex gap-2 items-center">
+                <div
+                  className="w-10 h-10 rounded-lg border shadow-sm flex-shrink-0 relative overflow-hidden"
+                  style={{
+                    backgroundColor: element.backgroundColor || 'transparent',
+                    backgroundImage: !element.backgroundColor ? 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)' : 'none',
+                    backgroundSize: '10px 10px',
+                    backgroundPosition: '0 0, 0 5px, 5px -5px, -5px 0px'
+                  }}
+                >
+                  <input
+                    type="color"
+                    value={element.backgroundColor || '#ffffff'}
+                    onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                    className="opacity-0 w-full h-full cursor-pointer"
+                  />
+                </div>
+                <div className="flex-1 border rounded-lg flex items-center px-3 bg-gray-50">
+                  <span className="text-gray-400 mr-2">#</span>
+                  <input
+                    type="text"
+                    value={(element.backgroundColor || '').replace('#', '').toUpperCase()}
+                    onChange={(e) => onChange({ backgroundColor: `#${e.target.value}` })}
+                    placeholder="Transparent"
+                    className="bg-transparent w-full outline-none text-sm font-mono"
+                  />
+                </div>
+                <button
+                  onClick={() => onChange({ backgroundColor: '' })}
+                  className="p-2 text-gray-400 hover:text-red-500"
+                  title="Clear background"
+                >
+                  <span className="text-xs">✕</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-gray-500">Alignment</label>
+              <div className="flex gap-2">
+                <StyleButton
+                  active={element.textAlign === 'left' || !element.textAlign}
+                  onClick={() => onChange({ textAlign: 'left' })}
+                  icon={<AlignLeft size={18} />}
+                />
+                <StyleButton
+                  active={element.textAlign === 'center'}
+                  onClick={() => onChange({ textAlign: 'center' })}
+                  icon={<AlignCenter size={18} />}
+                />
+                <StyleButton
+                  active={element.textAlign === 'right'}
+                  onClick={() => onChange({ textAlign: 'right' })}
+                  icon={<AlignRight size={18} />}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-gray-500">Anchor</label>
+              <div className="flex gap-2">
+                <StyleButton
+                  active={element.verticalAlign === 'top' || !element.verticalAlign}
+                  onClick={() => onChange({ verticalAlign: 'top' })}
+                  icon={<ArrowUpToLine size={18} />}
+                />
+                <StyleButton
+                  active={element.verticalAlign === 'middle'}
+                  onClick={() => onChange({ verticalAlign: 'middle' })}
+                  icon={<MoveVertical size={18} />}
+                />
+                <StyleButton
+                  active={element.verticalAlign === 'bottom'}
+                  onClick={() => onChange({ verticalAlign: 'bottom' })}
+                  icon={<ArrowDownToLine size={18} />}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="text-xs text-gray-500">Word-Break</label>
+              <button
+                onClick={() => onChange({ wordBreak: !element.wordBreak })}
+                className={`w-12 h-6 rounded-full transition-colors relative ${element.wordBreak ? 'bg-purple-600' : 'bg-gray-200'
+                  }`}
+              >
+                <div
+                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${element.wordBreak ? 'translate-x-6' : ''
+                    }`}
+                />
+              </button>
+            </div>
+          </div>
         </>
       )}
 
+      {/* Common Properties for all types */}
+      <div className="space-y-4 pt-4 border-t border-gray-100">
+        <h3 className="text-sm font-bold text-gray-900 uppercase">LAYOUT</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="X">
+            <input
+              type="number"
+              value={element.x}
+              onChange={(e) => handleNumberChange('x')(parseInt(e.target.value, 10))}
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+            />
+          </Field>
+          <Field label="Y">
+            <input
+              type="number"
+              value={element.y}
+              onChange={(e) => handleNumberChange('y')(parseInt(e.target.value, 10))}
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+            />
+          </Field>
+          <Field label="Width">
+            <input
+              type="number"
+              value={element.width}
+              onChange={(e) => handleNumberChange('width')(parseInt(e.target.value, 10))}
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+            />
+          </Field>
+          <Field label="Height">
+            <input
+              type="number"
+              value={element.height}
+              onChange={(e) => handleNumberChange('height')(parseInt(e.target.value, 10))}
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+            />
+          </Field>
+        </div>
+        <Field label="Opacity">
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={element.opacity ?? 1}
+            onChange={(e) => onChange({ opacity: parseFloat(e.target.value) })}
+            className="w-full accent-purple-600"
+          />
+        </Field>
+      </div>
+
+      {/* Image Specific */}
       {isImage && (
-        <>
-          <Field label="Object fit">
+        <div className="space-y-4 pt-4 border-t border-gray-100">
+          <h3 className="text-sm font-bold text-gray-900 uppercase">IMAGE</h3>
+          <Field label="URL">
+            <input
+              type="text"
+              value={element.content || ''}
+              onChange={(e) => onChange({ content: e.target.value })}
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+            />
+          </Field>
+          <Field label="Fit">
             <select
               value={element.fit || 'cover'}
               onChange={(e) => onChange({ fit: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full border rounded-lg px-3 py-2 text-sm"
             >
-              {['cover', 'contain', 'fill'].map((mode) => (
-                <option key={mode} value={mode}>
-                  {mode}
-                </option>
-              ))}
+              <option value="cover">Cover</option>
+              <option value="contain">Contain</option>
+              <option value="fill">Fill</option>
             </select>
           </Field>
-          <Field label="Corner radius">
+          <Field label="Radius">
             <input
               type="number"
               value={element.borderRadius || 0}
               onChange={(e) => handleNumberChange('borderRadius')(parseInt(e.target.value, 10))}
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full border rounded-lg px-3 py-2 text-sm"
             />
           </Field>
-        </>
+        </div>
       )}
 
+      {/* Shape Specific */}
       {isShape && (
-        <>
-          <Field label="Fill color">
+        <div className="space-y-4 pt-4 border-t border-gray-100">
+          <h3 className="text-sm font-bold text-gray-900 uppercase">SHAPE</h3>
+          <Field label="Color">
             <input
               type="color"
               value={element.backgroundColor || '#000000'}
@@ -243,25 +425,49 @@ export default function PropertiesPanel({ element, onChange }) {
               className="w-full h-10 border rounded-lg"
             />
           </Field>
-          <Field label="Corner radius">
+          <Field label="Radius">
             <input
               type="number"
               value={element.borderRadius || 0}
               onChange={(e) => handleNumberChange('borderRadius')(parseInt(e.target.value, 10))}
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full border rounded-lg px-3 py-2 text-sm"
             />
           </Field>
-        </>
+        </div>
       )}
+
+      <div className="pt-4 border-t border-gray-100">
+        <Field label="Variable Name">
+          <input
+            type="text"
+            value={element.variableName || ''}
+            onChange={(e) => onChange({ variableName: e.target.value })}
+            className="w-full border rounded-lg px-3 py-2 text-sm bg-gray-50"
+            placeholder="e.g. product_name"
+          />
+        </Field>
+      </div>
     </div>
   );
 }
 
 function Field({ label, children }) {
   return (
-    <label className="text-xs text-gray-500 uppercase tracking-wide space-y-1 block">
-      {label}
+    <div className="space-y-1">
+      <label className="text-xs text-gray-500">{label}</label>
       {children}
-    </label>
+    </div>
+  );
+}
+
+function StyleButton({ active, onClick, icon }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`p-2 rounded-lg border transition-colors ${active ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+        }`}
+    >
+      {icon}
+    </button>
   );
 }

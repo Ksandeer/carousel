@@ -23,18 +23,16 @@ function renderTemplate(template, data = {}) {
         const source = resolveContent(el, data);
         return `
           <div style="${style}">
-            <img src="${source}" style="width: 100%; height: 100%; object-fit: ${el.fit || 'cover'}; border-radius: ${
-          el.borderRadius || 0
-        }px;" />
+            <img src="${source}" style="width: 100%; height: 100%; object-fit: ${el.fit || 'cover'}; border-radius: ${el.borderRadius || 0
+          }px;" />
           </div>
         `;
       }
 
       if (el.type === 'shape') {
         return `
-          <div style="${style} background-color: ${el.backgroundColor || '#000'}; border-radius: ${
-          el.borderRadius || 0
-        }px;"></div>
+          <div style="${style} background-color: ${el.backgroundColor || '#000'}; border-radius: ${el.borderRadius || 0
+          }px;"></div>
         `;
       }
 
@@ -44,14 +42,18 @@ function renderTemplate(template, data = {}) {
           font-family: ${getFontStackValue(el.fontFamily)};
           font-size: ${el.fontSize || 16}px;
           font-weight: ${el.fontWeight || 400};
+          font-style: ${el.fontStyle || 'normal'};
+          text-decoration: ${el.textDecoration || 'none'};
           color: ${el.color || '#000'};
+          background-color: ${el.backgroundColor || 'transparent'};
           display: flex;
-          align-items: center;
+          align-items: ${resolveVerticalAlignment(el.verticalAlign)};
           justify-content: ${resolveAlignment(el.textAlign)};
           text-align: ${el.textAlign || 'left'};
           line-height: ${el.lineHeight || 1.2};
           letter-spacing: ${formatLetterSpacing(el.letterSpacing)};
           text-transform: ${el.textTransform || 'none'};
+          word-break: ${el.wordBreak ? 'break-all' : 'normal'};
           white-space: pre-wrap;
         ">
           ${textContent}
@@ -134,6 +136,17 @@ function resolveAlignment(value = 'left') {
     case 'center':
       return 'center';
     case 'right':
+      return 'flex-end';
+    default:
+      return 'flex-start';
+  }
+}
+
+function resolveVerticalAlignment(value = 'top') {
+  switch (value) {
+    case 'middle':
+      return 'center';
+    case 'bottom':
       return 'flex-end';
     default:
       return 'flex-start';

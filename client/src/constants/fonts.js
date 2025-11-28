@@ -20,10 +20,16 @@ export function getFontStack(value) {
 
 export function getFontImportUrl(value) {
   const option = getFontOption(value);
-  if (!option || !option.googleId) {
-    return null;
+  if (option) {
+    if (!option.googleId) return null;
+    return `https://fonts.googleapis.com/css2?family=${option.googleId}&display=swap`;
   }
-  return `https://fonts.googleapis.com/css2?family=${option.googleId}&display=swap`;
+  // Try to load as dynamic Google Font
+  if (value) {
+    const formatted = value.trim().replace(/ /g, '+');
+    return `https://fonts.googleapis.com/css2?family=${formatted}:wght@400;700&display=swap`;
+  }
+  return null;
 }
 
 export default FONT_OPTIONS;

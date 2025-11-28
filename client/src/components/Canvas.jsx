@@ -18,10 +18,10 @@ export default function Canvas({
 
   const backgroundStyle = showGrid
     ? {
-        backgroundColor: '#4a4a4a',
-        backgroundImage: gridPattern,
-        backgroundSize: '40px 40px',
-      }
+      backgroundColor: '#4a4a4a',
+      backgroundImage: gridPattern,
+      backgroundSize: '40px 40px',
+    }
     : { backgroundColor: '#1f1f1f' };
 
   const handlePointerMove = useCallback(
@@ -97,11 +97,10 @@ export default function Canvas({
           {elements.map((el, index) => (
             <div
               key={el.id}
-              className={`absolute cursor-move transition-all duration-150 ${
-                selectedId === el.id
+              className={`absolute cursor-move transition-all duration-150 ${selectedId === el.id
                   ? 'ring-2 ring-purple-400 shadow-lg'
                   : 'ring-1 ring-transparent hover:ring-purple-200'
-              }`}
+                }`}
               style={{
                 width: el.width,
                 height: el.height,
@@ -161,18 +160,22 @@ function renderElementContent(el) {
 
   return (
     <div
-      className="w-full h-full whitespace-pre-wrap flex items-center justify-center text-white"
+      className="w-full h-full whitespace-pre-wrap flex"
       style={{
         fontSize: el.fontSize || 18,
         color: el.color || '#fff',
+        backgroundColor: el.backgroundColor || 'transparent',
         fontWeight: el.fontWeight || 400,
+        fontStyle: el.fontStyle || 'normal',
+        textDecoration: el.textDecoration || 'none',
         textAlign: el.textAlign || 'left',
         justifyContent: resolveJustify(el.textAlign),
+        alignItems: resolveAlignItems(el.verticalAlign),
         lineHeight: el.lineHeight || 1.2,
-        display: 'flex',
         fontFamily: getFontStack(el.fontFamily),
         letterSpacing: typeof el.letterSpacing === 'number' ? `${el.letterSpacing}px` : undefined,
         textTransform: el.textTransform || 'none',
+        wordBreak: el.wordBreak ? 'break-all' : 'normal',
       }}
     >
       {el.content || ''}
@@ -183,6 +186,12 @@ function renderElementContent(el) {
 function resolveJustify(value = 'left') {
   if (value === 'center') return 'center';
   if (value === 'right') return 'flex-end';
+  return 'flex-start';
+}
+
+function resolveAlignItems(value = 'top') {
+  if (value === 'middle') return 'center';
+  if (value === 'bottom') return 'flex-end';
   return 'flex-start';
 }
 
