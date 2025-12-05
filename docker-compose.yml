@@ -2,6 +2,7 @@ services:
   export-html:
     container_name: export-carousel
     platform: linux/amd64
+    user: root
     volumes:
       - ./src:/service/src
       - ./data:/service/data
