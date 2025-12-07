@@ -40,6 +40,16 @@ function resolveDynamicColors(element, data) {
     el.stroke = { ...el.stroke, color: data[`${varName}_strokeColor`] };
   }
 
+  // Quote border color
+  if (el.quote && el.quoteBorderColorDynamic && data[`${varName}_quoteBorderColor`]) {
+    el.quote = { ...el.quote, borderColor: data[`${varName}_quoteBorderColor`] };
+  }
+
+  // Quote background color
+  if (el.quote && el.quoteBackgroundColorDynamic && data[`${varName}_quoteBackgroundColor`]) {
+    el.quote = { ...el.quote, backgroundColor: data[`${varName}_quoteBackgroundColor`] };
+  }
+
   return el;
 }
 
@@ -151,22 +161,54 @@ transform: rotate(${el.rotation || 0}deg);
 
       const rawText = resolveTextContent(el, data).trim();
 
-      // Parse **text** for highlighting
+      // Parse **text** for highlighting (with mode support)
       const parseHighlightedText = (text, highlightColor) => {
         if (!text) return '';
         const padding = el.highlightPadding ?? 3;
         const radius = el.highlightRadius ?? 6;
+        const mode = el.highlightMode || 'background';
+
         const parts = text.split(/(\*\*.*?\*\*)/g);
         return parts.map(part => {
           if (part.startsWith('**') && part.endsWith('**')) {
             const content = part.slice(2, -2);
-            return ` < span style = "background-color: ${highlightColor || '#ffeb3b'}; padding: ${padding}px 8px; border-radius: ${radius}px; display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone;" > ${escapeHtml(content)}</span > `;
+
+            if (mode === 'text') {
+              // Text color mode
+              return `<span style="color: ${highlightColor || '#ffeb3b'}; font-weight: bold;">${escapeHtml(content)}</span>`;
+            } else {
+              // Background mode (default)
+              return `<span style="background-color: ${highlightColor || '#ffeb3b'}; padding: ${padding}px 8px; border-radius: ${radius}px; display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone;">${escapeHtml(content)}</span>`;
+            }
           }
           return escapeHtml(part);
         }).join('');
       };
 
-      const textContent = parseHighlightedText(rawText, el.highlightColor);
+
+      // Parse «text» or "text" for quotes
+      const parseQuotes = (text) => {
+        if (!text || !el.quote?.enabled) return text;
+
+        const borderColor = el.quote.borderColor || '#9333ea';
+        const bgColor = el.quote.backgroundColor || '#f3e8ff';
+        const borderWidth = el.quote.borderWidth || 4;
+        const paddingLeft = el.quote.paddingLeft || 12;
+        const paddingRight = el.quote.paddingRight || 12;
+        const paddingTop = el.quote.paddingTop || 8;
+        const paddingBottom = el.quote.paddingBottom || 8;
+
+        // Match «text» or "text"  
+        const quoteRegex = /«([^»]+)»|"([^"]+)"/g;
+
+        return text.replace(quoteRegex, (match, guillemet, regular) => {
+          const content = guillemet || regular;
+          return `<span style="display: block; border-left: ${borderWidth}px solid ${borderColor}; background-color: ${bgColor}; padding: ${paddingTop}px ${paddingRight}px ${paddingBottom}px ${paddingLeft}px; margin: 8px 0;">${content}</span>`;
+        });
+      };
+
+      let textContent = parseHighlightedText(rawText, el.highlightColor);
+      textContent = parseQuotes(textContent);
       const shadowStyle = el.shadow ? `text - shadow: ${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${hexToRgba(el.shadow.color || '#000000', el.shadow.opacity ?? 1)}; ` : '';
       const strokeStyle = el.stroke ? `- webkit - text - stroke: ${el.stroke.width}px ${el.stroke.color}; ` : '';
 
