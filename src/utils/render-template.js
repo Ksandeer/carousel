@@ -1,5 +1,14 @@
 const path = require('path');
 const fontCatalog = require(path.join(__dirname, '../../client/src/fonts.json'));
+const crypto = require('crypto');
+
+// Helper function to convert hex color to rgba with opacity
+function hexToRgba(hex, opacity = 1) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
 
 const FONT_MAP = new Map(fontCatalog.map((font) => [font.value, font]));
 
@@ -10,14 +19,14 @@ function renderTemplate(template, data = {}) {
   const elementHtml = elements
     .map((el) => {
       const style = `
-        position: absolute;
-        left: ${el.x}px;
-        top: ${el.y}px;
-        width: ${el.width}px;
-        height: ${el.height}px;
-        opacity: ${el.opacity ?? 1};
-        transform: rotate(${el.rotation || 0}deg);
-      `;
+position: absolute;
+left: ${el.x} px;
+top: ${el.y} px;
+width: ${el.width} px;
+height: ${el.height} px;
+opacity: ${el.opacity ?? 1};
+transform: rotate(${el.rotation || 0}deg);
+`;
 
       if (el.type === 'image') {
         const source = resolveContent(el, data);
@@ -29,29 +38,30 @@ function renderTemplate(template, data = {}) {
           const filters = [];
           if (el.stroke) {
             const { width, color } = el.stroke;
-            filters.push(`drop-shadow(-${width}px 0 0 ${color})`);
-            filters.push(`drop-shadow(${width}px 0 0 ${color})`);
-            filters.push(`drop-shadow(0 -${width}px 0 ${color})`);
-            filters.push(`drop-shadow(0 ${width}px 0 ${color})`);
+            filters.push(`drop - shadow(-${width}px 0 0 ${color})`);
+            filters.push(`drop - shadow(${width}px 0 0 ${color})`);
+            filters.push(`drop - shadow(0 - ${width}px 0 ${color})`);
+            filters.push(`drop - shadow(0 ${width}px 0 ${color})`);
           }
           if (el.shadow) {
-            filters.push(`drop-shadow(${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'})`);
+            const shadowColor = hexToRgba(el.shadow.color || '#000000', el.shadow.opacity ?? 1);
+            filters.push(`drop - shadow(${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${shadowColor})`);
           }
           if (filters.length > 0) {
-            filterStyle = `filter: ${filters.join(' ')};`;
+            filterStyle = `filter: ${filters.join(' ')}; `;
           }
         }
 
         // For non-contour mode, apply shadow and border directly to img
-        const imgShadowStyle = (!isContour && el.shadow) ? `box-shadow: ${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'};` : '';
-        const imgBorderStyle = (!isContour && el.stroke) ? `border: ${el.stroke.width}px solid ${el.stroke.color};` : '';
+        const imgShadowStyle = (!isContour && el.shadow) ? `box - shadow: ${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${hexToRgba(el.shadow.color || '#000000', el.shadow.opacity ?? 1)}; ` : '';
+        const imgBorderStyle = (!isContour && el.stroke) ? `border: ${el.stroke.width}px solid ${el.stroke.color}; ` : '';
 
         return `
-          <div style="${style}">
-            <div style="width: 100%; height: 100%; position: relative; overflow: hidden;">
-              <img 
-                src="${source}" 
-                style="
+  < div style = "${style}" >
+    <div style="width: 100%; height: 100%; position: relative; overflow: hidden;">
+      <img
+        src="${source}"
+        style="
                   width: 100%; 
                   height: 100%; 
                   object-fit: ${el.fit || 'cover'}; 
@@ -61,24 +71,24 @@ function renderTemplate(template, data = {}) {
                   ${imgBorderStyle}
                   pointer-events: none;
                   user-select: none;
-                " 
-              />
-            </div>
-          </div>
-        `;
+                "
+      />
+    </div>
+          </div >
+  `;
       }
 
       if (el.type === 'shape') {
-        const shadowStyle = el.shadow ? `box-shadow: ${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'};` : '';
+        const shadowStyle = el.shadow ? `box - shadow: ${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${hexToRgba(el.shadow.color || '#000000', el.shadow.opacity ?? 1)}; ` : '';
 
         let backgroundStyle;
         if (el.gradient?.enabled) {
           if (el.gradient.stops && el.gradient.stops.length > 0) {
             const stopsCSS = [...el.gradient.stops]
               .sort((a, b) => a.position - b.position)
-              .map(s => `${hexToRgba(s.color, s.opacity)} ${s.position}%`)
+              .map(s => `${hexToRgba(s.color, s.opacity)} ${s.position}% `)
               .join(', ');
-            backgroundStyle = `background: linear-gradient(${el.gradient.angle || 90}deg, ${stopsCSS});`;
+            backgroundStyle = `background: linear - gradient(${el.gradient.angle || 90}deg, ${stopsCSS}); `;
           } else {
             const startColor = el.gradient.start || '#000000';
             const endColor = el.gradient.end || '#ffffff';
@@ -86,16 +96,16 @@ function renderTemplate(template, data = {}) {
             const endOpacity = el.gradient.endOpacity ?? 1;
             const startPos = el.gradient.startPosition ?? 0;
             const endPos = el.gradient.endPosition ?? 100;
-            backgroundStyle = `background: linear-gradient(${el.gradient.angle || 90}deg, ${hexToRgba(startColor, startOpacity)} ${startPos}%, ${hexToRgba(endColor, endOpacity)} ${endPos}%);`;
+            backgroundStyle = `background: linear - gradient(${el.gradient.angle || 90}deg, ${hexToRgba(startColor, startOpacity)} ${startPos} %, ${hexToRgba(endColor, endOpacity)} ${endPos} %); `;
           }
         } else {
-          backgroundStyle = `background-color: ${el.backgroundColor || '#000'};`;
+          backgroundStyle = `background - color: ${el.backgroundColor || '#000'}; `;
         }
 
         return `
-          <div style="${style} ${backgroundStyle} border-radius: ${el.borderRadius || 0
-          }px; ${shadowStyle}"></div>
-        `;
+  < div style = "${style} ${backgroundStyle} border-radius: ${el.borderRadius || 0
+          }px; ${shadowStyle} "></div>
+  `;
       }
 
       const rawText = resolveTextContent(el, data).trim();
@@ -109,15 +119,15 @@ function renderTemplate(template, data = {}) {
         return parts.map(part => {
           if (part.startsWith('**') && part.endsWith('**')) {
             const content = part.slice(2, -2);
-            return ` <span style="background-color: ${highlightColor || '#ffeb3b'}; padding: ${padding}px 8px; border-radius: ${radius}px; display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone;">${escapeHtml(content)}</span> `;
+            return ` < span style = "background-color: ${highlightColor || '#ffeb3b'}; padding: ${padding}px 8px; border-radius: ${radius}px; display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone;" > ${escapeHtml(content)}</span > `;
           }
           return escapeHtml(part);
         }).join('');
       };
 
       const textContent = parseHighlightedText(rawText, el.highlightColor);
-      const shadowStyle = el.shadow ? `text-shadow: ${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'};` : '';
-      const strokeStyle = el.stroke ? `-webkit-text-stroke: ${el.stroke.width}px ${el.stroke.color};` : '';
+      const shadowStyle = el.shadow ? `text - shadow: ${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${hexToRgba(el.shadow.color || '#000000', el.shadow.opacity ?? 1)}; ` : '';
+      const strokeStyle = el.stroke ? `- webkit - text - stroke: ${el.stroke.width}px ${el.stroke.color}; ` : '';
 
       let resizingStyle = 'white-space: pre-wrap;';
       let fittyClass = '';
@@ -132,86 +142,86 @@ function renderTemplate(template, data = {}) {
       }
 
       return `
-        <div style="${style}
-          background-color: ${el.backgroundColor || 'transparent'};
-          display: flex;
-          align-items: ${resolveVerticalAlignment(el.verticalAlign)};
-          overflow: hidden;
-        ">
-          <div class="${fittyClass}" style="
-            width: 100%;
-            text-align: ${el.textAlign || 'left'};
-            font-family: ${getFontStackValue(el.fontFamily)};
-            font-size: ${el.fontSize || 16}px;
-            font-weight: ${el.fontWeight || 400};
-            font-style: ${el.fontStyle || 'normal'};
-            text-decoration: ${el.textDecoration || 'none'};
-            color: ${el.color || '#000'};
-            line-height: ${el.lineHeight || 1.2};
-            letter-spacing: ${formatLetterSpacing(el.letterSpacing)};
-            text-transform: ${el.textTransform || 'none'};
-            word-break: ${el.wordBreak ? 'break-all' : 'normal'};
+  < div style = "${style}
+background - color: ${el.backgroundColor || 'transparent'};
+display: flex;
+align - items: ${resolveVerticalAlignment(el.verticalAlign)};
+overflow: hidden;
+">
+  < div class="${fittyClass}" style = "
+width: 100 %;
+text - align: ${el.textAlign || 'left'};
+font - family: ${getFontStackValue(el.fontFamily)};
+font - size: ${el.fontSize || 16} px;
+font - weight: ${el.fontWeight || 400};
+font - style: ${el.fontStyle || 'normal'};
+text - decoration: ${el.textDecoration || 'none'};
+color: ${el.color || '#000'};
+line - height: ${el.lineHeight || 1.2};
+letter - spacing: ${formatLetterSpacing(el.letterSpacing)};
+text - transform: ${el.textTransform || 'none'};
+word -break: ${el.wordBreak ? 'break-all' : 'normal'};
             ${resizingStyle}
             ${shadowStyle}
             ${strokeStyle}
-          ">${textContent}</div>
-        </div>
-      `;
+">${textContent}</div>
+        </div >
+  `;
     })
     .join('');
 
   const fittyScript = `
-    <script>
-      document.querySelectorAll('.fitty-text').forEach(el => {
-        const container = el.parentElement;
-        let min = 10;
-        let max = 200;
-        let optimal = 16;
-        
-        // Reset to base size
-        el.style.fontSize = '10px';
-        
-        while (min <= max) {
-          const mid = Math.floor((min + max) / 2);
-          el.style.fontSize = mid + 'px';
-          if (el.scrollHeight <= container.clientHeight && el.scrollWidth <= container.clientWidth) {
-            optimal = mid;
-            min = mid + 1;
-          } else {
-            max = mid - 1;
-          }
-        }
-        el.style.fontSize = optimal + 'px';
-      });
-    </script>
+  < script >
+  document.querySelectorAll('.fitty-text').forEach(el => {
+    const container = el.parentElement;
+    let min = 10;
+    let max = 200;
+    let optimal = 16;
+
+    // Reset to base size
+    el.style.fontSize = '10px';
+
+    while (min <= max) {
+      const mid = Math.floor((min + max) / 2);
+      el.style.fontSize = mid + 'px';
+      if (el.scrollHeight <= container.clientHeight && el.scrollWidth <= container.clientWidth) {
+        optimal = mid;
+        min = mid + 1;
+      } else {
+        max = mid - 1;
+      }
+    }
+    el.style.fontSize = optimal + 'px';
+  });
+    </script >
   `;
 
   return `
-    <!DOCTYPE html>
+  < !DOCTYPE html >
     <html>
-    <head>
-      <meta charset="utf-8" />
-      ${fontLinks.map((href) => `<link rel="stylesheet" href="${href}" />`).join('\n')}
-      <style>
-        body { margin: 0; padding: 0; background: transparent; }
-        #canvas {
-          position: relative;
+      <head>
+        <meta charset="utf-8" />
+        ${fontLinks.map((href) => `<link rel="stylesheet" href="${href}" />`).join('\n')}
+        <style>
+          body {margin: 0; padding: 0; background: transparent; }
+          #canvas {
+            position: relative;
           width: ${width}px;
           height: ${height}px;
           background: white;
           overflow: hidden;
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
-      </style>
-    </head>
-    <body>
-      <div id="canvas">
-        ${elementHtml}
-        ${fittyScript}
-      </div>
-    </body>
+        </style>
+      </head>
+      <body>
+        <div id="canvas">
+          ${elementHtml}
+          ${fittyScript}
+        </div>
+      </body>
     </html>
-  `;
+`;
 }
 
 function resolveContent(element, data) {
@@ -242,7 +252,7 @@ function applyPlaceholders(str, data) {
 function resolveTextContent(element, data) {
   if (element.variableName && hasOwn(data, element.variableName)) {
     const value = data[element.variableName];
-    return value == null ? '' : `${value}`;
+    return value == null ? '' : `${value} `;
   }
   return applyPlaceholders(element.content || '', data);
 }
@@ -284,7 +294,7 @@ function hasOwn(obj, prop) {
 
 function formatLetterSpacing(value) {
   if (typeof value === 'number') {
-    return `${value}px`;
+    return `${value} px`;
   }
   return '0px';
 }
@@ -292,7 +302,7 @@ function formatLetterSpacing(value) {
 function getFontStackValue(value) {
   const font = value && FONT_MAP.get(value);
   if (font) {
-    return `'${font.value}', ${font.fallback || 'sans-serif'}`;
+    return `'${font.value}', ${font.fallback || 'sans-serif'} `;
   }
   return "'Inter', sans-serif";
 }

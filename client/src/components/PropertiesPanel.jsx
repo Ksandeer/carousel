@@ -638,6 +638,18 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                 />
                 <div className="text-right text-xs text-gray-500">{element.shadow.blur || 0}px</div>
               </Field>
+
+              <Field label={t('properties.opacity') || 'Opacity'}>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={(element.shadow.opacity ?? 1) * 100}
+                  onChange={(e) => onChange({ shadow: { ...element.shadow, opacity: parseInt(e.target.value) / 100 } })}
+                  className="w-full accent-purple-600"
+                />
+                <div className="text-right text-xs text-gray-500">{Math.round((element.shadow.opacity ?? 1) * 100)}%</div>
+              </Field>
             </>
           )}
         </div>
