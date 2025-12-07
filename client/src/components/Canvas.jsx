@@ -516,36 +516,91 @@ const TextRenderer = ({ el }) => {
           ...getResizingStyles(),
         }}
       >
-        {parseHighlightedText((el.content_preview || el.content || '').trim(), el.highlightColor, el.highlightPadding, el.highlightRadius)}
+        {parseQuotes(
+          parseHighlightedText(
+            (el.content_preview || el.content || '').trim(),
+            el.highlightColor,
+            el.highlightPadding,
+            el.highlightRadius,
+            el.highlightMode
+          ),
+          el.quote
+        )}
       </div>
     </div>
   );
 };
 
-const parseHighlightedText = (text, highlightColor, padding = 3, radius = 6) => {
+const parseHighlightedText = (text, highlightColor, padding = 3, radius = 6, mode = 'background') => {
   if (!text) return '';
   const parts = text.split(/(\*\*.*?\*\*)/g);
   return parts.map((part, index) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       const content = part.slice(2, -2);
-      return (
-        <React.Fragment key={index}>
-          {' '}
-          <span
-            style={{
-              backgroundColor: highlightColor || '#ffeb3b',
-              padding: `${padding}px 8px`,
-              borderRadius: `${radius}px`,
-              display: 'inline',
-              boxDecorationBreak: 'clone',
-              WebkitBoxDecorationBreak: 'clone',
-            }}
-          >
+
+      if (mode === 'text') {
+        // Text color mode
+        return (
+          <span key={index} style={{ color: highlightColor || '#ffeb3b', fontWeight: 'bold' }}>
             {content}
           </span>
-          {' '}
-        </React.Fragment>
-      );
+        );
+      } else {
+        // Background mode (default)
+        return (
+          <React.Fragment key={index}>
+            {' '}
+            <span
+              style={{
+                backgroundColor: highlightColor || '#ffeb3b',
+                padding: `${padding}px 8px`,
+                borderRadius: `${radius}px`,
+                display: 'inline',
+                boxDecorationBreak: 'clone',
+                WebkitBoxDecorationBreak: 'clone',
+              }}
+            >
+              {content}
+            </span>
+            {' '}
+          </React.Fragment>
+        );
+      }
+    }
+    return part;
+  });
+};
+
+const parseQuotes = (text, quoteSettings) => {
+  if (!text || !quoteSettings?.enabled) return text;
+
+  const borderColor = quoteSettings.borderColor || '#9333ea';
+  const bgColor = quoteSettings.backgroundColor || '#f3e8ff';
+  const borderWidth = quoteSettings.borderWidth || 4;
+
+  // Match «text» or "text"
+  const quoteRegex = /«([^»]+)»|"([^"]+)"/g;
+  const parts = text.split(quoteRegex);
+
+  return parts.map((part, index) => {
+    // Every 3rd element starting from index 1 or 2 is a quote content
+    if (index % 3 === 1 || index % 3 === 2) {
+      if (part) {
+        return (
+          <span
+            key={index}
+            style={{
+              display: 'block',
+              borderLeft: `${borderWidth}px solid ${borderColor}`,
+              backgroundColor: bgColor,
+              padding: '8px 12px',
+              margin: '8px 0',
+            }}
+          >
+            {part}
+          </span>
+        );
+      }
     }
     return part;
   });

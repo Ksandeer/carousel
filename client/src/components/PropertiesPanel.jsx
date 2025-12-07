@@ -260,6 +260,32 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                 onDynamicChange={(checked) => onChange({ highlightColorDynamic: checked })}
                 t={t}
               />
+
+              {/* Highlight Mode Toggle */}
+              <div className="space-y-2">
+                <label className="text-xs text-gray-500">{t('properties.highlightMode')}</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => onChange({ highlightMode: 'background' })}
+                    className={`px-3 py-2 text-xs rounded-lg border transition-colors ${(element.highlightMode || 'background') === 'background'
+                      ? 'bg-purple-100 border-purple-400 text-purple-700 font-medium'
+                      : 'border-gray-300 text-gray-600 hover:border-purple-200'
+                      }`}
+                  >
+                    {t('properties.backgroundMode')}
+                  </button>
+                  <button
+                    onClick={() => onChange({ highlightMode: 'text' })}
+                    className={`px-3 py-2 text-xs rounded-lg border transition-colors ${element.highlightMode === 'text'
+                      ? 'bg-purple-100 border-purple-400 text-purple-700 font-medium'
+                      : 'border-gray-300 text-gray-600 hover:border-purple-200'
+                      }`}
+                  >
+                    {t('properties.textColorMode')}
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3 mt-2">
                 <Field label="Padding">
                   <div className="relative">
@@ -288,6 +314,73 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                 💡 Use **text** in your content to highlight words with this color
               </p>
             </div>
+          </CollapsibleSection>
+
+          {/* QUOTE Section */}
+          <CollapsibleSection
+            title={t('properties.quote')}
+            isCollapsed={collapsedSections.quote}
+            onToggle={() => toggleSection('quote')}
+          >
+            <label className="flex items-center gap-2 mb-3">
+              <input
+                type="checkbox"
+                checked={element.quote?.enabled || false}
+                onChange={(e) => onChange({
+                  quote: { ...element.quote, enabled: e.target.checked }
+                })}
+                className="rounded"
+              />
+              <span className="text-sm">{t('properties.enableQuote')}</span>
+            </label>
+
+            {element.quote?.enabled && (
+              <div className="space-y-3">
+                <ColorField
+                  label={t('properties.borderColor')}
+                  value={element.quote.borderColor || '#9333ea'}
+                  onChange={(color) => onChange({
+                    quote: { ...element.quote, borderColor: color }
+                  })}
+                  dynamicFlag={element.quoteBorderColorDynamic}
+                  onDynamicChange={(checked) => onChange({ quoteBorderColorDynamic: checked })}
+                  t={t}
+                />
+
+                <ColorField
+                  label={t('properties.backgroundColor')}
+                  value={element.quote.backgroundColor || '#f3e8ff'}
+                  onChange={(color) => onChange({
+                    quote: { ...element.quote, backgroundColor: color }
+                  })}
+                  dynamicFlag={element.quoteBackgroundColorDynamic}
+                  onDynamicChange={(checked) => onChange({ quoteBackgroundColorDynamic: checked })}
+                  t={t}
+                />
+
+                <Field label={t('properties.borderWidth')}>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="1"
+                      max="10"
+                      value={element.quote.borderWidth || 4}
+                      onChange={(e) => onChange({
+                        quote: { ...element.quote, borderWidth: parseInt(e.target.value) }
+                      })}
+                      className="flex-1"
+                    />
+                    <span className="text-sm text-gray-600 w-12 text-right">
+                      {element.quote.borderWidth || 4}px
+                    </span>
+                  </div>
+                </Field>
+
+                <p className="text-xs text-gray-400 mt-2">
+                  💡 Use «text» or "text" in your content for quotes
+                </p>
+              </div>
+            )}
           </CollapsibleSection>
 
           <hr className="border-gray-100" />
