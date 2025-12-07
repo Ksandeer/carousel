@@ -1,11 +1,99 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import Tooltip from './Tooltip';
+import FolderTree from './FolderTree';
 
-export default function TemplateLibrary({ templates, onLoad, currentTemplateId, onCreateNew, onImport, onExport }) {
+export default function TemplateLibrary({
+  templates,
+  onLoad,
+  currentTemplateId,
+  onCreateNew,
+  onImport,
+  onExport,
+  onRefresh
+}) {
   const { t } = useTranslation();
-  const [isImporting, setIsImporting] = React.useState(false);
-  const [importCode, setImportCode] = React.useState('');
+  const [isImporting, setIsImporting] = useState(false);
+  const [importCode, setImportCode] = useState('');
+  const [folders, setFolders] = useState([]);
+
+  // Fetch folders
+  useEffect(() => {
+    fetchFolders();
+  }, []);
+
+  const fetchFolders = async () => {
+    try {
+      const res = await fetch('/folders');
+      const data = await res.json();
+      setFolders(data);
+    } catch (err) {
+      console.error('Failed to fetch folders:', err);
+    }
+  };
+
+  const handleCreateFolder = async () => {
+    try {
+      const res = await fetch('/folders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'New Folder' })
+      });
+      const newFolder = await res.json();
+      setFolders([...folders, newFolder]);
+    } catch (err) {
+      console.error('Failed to create folder:', err);
+    }
+  };
+
+  const handleRenameFolder = async (folderId, newName) => {
+    try {
+      await fetch(`/folders/${folderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName })
+      });
+      setFolders(folders.map(f => f.id === folderId ? { ...f, name: newName } : f));
+    } catch (err) {
+      console.error('Failed to rename folder:', err);
+    }
+  };
+
+  const handleDeleteFolder = async (folderId) => {
+    try {
+      const res = await fetch(`/folders/${folderId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setFolders(folders.filter(f => f.id !== folderId));
+      } else {
+        const error = await res.json();
+        alert(error.error || 'Failed to delete folder');
+      }
+    } catch (err) {
+      console.error('Failed to delete folder:', err);
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId) => {
+    try {
+      await fetch(`/templates/${templateId}`, { method: 'DELETE' });
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      console.error('Failed to delete template:', err);
+    }
+  };
+
+  const handleMoveTemplate = async (templateId, folderId) => {
+    try {
+      await fetch(`/templates/${templateId}/move`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folderId })
+      });
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      console.error('Failed to move template:', err);
+    }
+  };
 
   return (
     <section>
@@ -74,34 +162,23 @@ export default function TemplateLibrary({ templates, onLoad, currentTemplateId, 
         )}
       </div>
 
-      <div className="space-y-2 max-h-64 overflow-auto pr-1">
-        {templates.map((template) => {
-          const isActive = template.id === currentTemplateId;
-          return (
-            <Tooltip key={template.id} text={t('tooltips.templates.load')}>
-              <button
-                type="button"
-                onClick={() => onLoad(template.id)}
-                className={`w-full border rounded-xl px-3 py-2 text-left text-sm ${isActive ? 'border-purple-400 bg-purple-50' : 'border-gray-200 hover:border-purple-200'
-                  }`}
-              >
-                <p className="font-semibold text-gray-800">{template.name || t('templates.untitled') || 'Untitled template'}</p>
-                <p className="text-xs text-gray-500 flex items-center gap-2">
-                  <span>
-                    {template.width}×{template.height}
-                  </span>
-                  {template.updatedAt && (
-                    <span>{t('templates.updated') || 'Updated'} {new Date(template.updatedAt).toLocaleDateString()}</span>
-                  )}
-                </p>
-              </button>
-            </Tooltip>
-          );
-        })}
-        {templates.length === 0 && (
+      {/* Folder Tree */}
+      <div className="max-h-96 overflow-auto pr-1">
+        {templates.length === 0 ? (
           <div className="text-xs text-gray-500 border border-dashed rounded-xl px-3 py-4 text-center">
             {t('templates.noTemplates') || 'No templates yet. Save the current design to create one.'}
           </div>
+        ) : (
+          <FolderTree
+            folders={folders}
+            templates={templates}
+            onMove={handleMoveTemplate}
+            onDeleteTemplate={handleDeleteTemplate}
+            onDeleteFolder={handleDeleteFolder}
+            onCreateFolder={handleCreateFolder}
+            onRenameFolder={handleRenameFolder}
+            onTemplateClick={onLoad}
+          />
         )}
       </div>
     </section>

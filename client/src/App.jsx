@@ -446,11 +446,12 @@ function App() {
 
           <TemplateLibrary
             templates={templates}
-            onLoad={loadTemplate}
+            onLoad={handleLoadTemplate}
             currentTemplateId={currentTemplateId}
             onCreateNew={handleCreateNewTemplate}
             onImport={handleImportHtml}
             onExport={handleExportTemplate}
+            onRefresh={fetchTemplates}
           />
 
           <ExportSettingsPanel
