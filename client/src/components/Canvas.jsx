@@ -65,8 +65,24 @@ export default function Canvas({
           dH = -localDeltaY;
         }
 
-        const newWidth = Math.max(20, interaction.originWidth + dW);
-        const newHeight = Math.max(20, interaction.originHeight + dH);
+        let newWidth = Math.max(20, interaction.originWidth + dW);
+        let newHeight = Math.max(20, interaction.originHeight + dH);
+
+        if (interaction.constrainProportions) {
+          const aspect = interaction.aspect || 1;
+
+          if (handle.length === 2 || handle === 'w' || handle === 'e') {
+            // Corner or Side (Width drives Height)
+            newHeight = Math.round(newWidth / aspect);
+          } else {
+            // Top/Bottom (Height drives Width)
+            newWidth = Math.round(newHeight * aspect);
+          }
+        }
+
+        // Final constrained new dimensions
+        newWidth = Math.round(newWidth);
+        newHeight = Math.round(newHeight);
 
         const finalDW = newWidth - interaction.originWidth;
         const finalDH = newHeight - interaction.originHeight;
@@ -96,8 +112,8 @@ export default function Canvas({
         onUpdate(interaction.id, {
           x: Math.round(newX),
           y: Math.round(newY),
-          width: Math.round(newWidth),
-          height: Math.round(newHeight),
+          width: newWidth,
+          height: newHeight,
         });
       }
     },
@@ -183,6 +199,8 @@ export default function Canvas({
         originWidth: element.width || 0,
         originHeight: element.height || 0,
         rotation: element.rotation || 0,
+        constrainProportions: element.constrainProportions,
+        aspect: (element.width || 1) / (element.height || 1),
       };
 
       window.addEventListener('pointermove', handlePointerMove);

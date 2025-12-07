@@ -17,6 +17,8 @@ import {
   Plus,
   Trash2,
   ArrowRightLeft,
+  Link,
+  Unlink,
 } from 'lucide-react';
 import FONT_OPTIONS, { DEFAULT_FONT, getFontStack } from '../constants/fonts';
 
