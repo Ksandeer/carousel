@@ -15,6 +15,8 @@ export default function Canvas({
   showGrid,
 }) {
   const interactionRef = useRef(null);
+  const frameRef = useRef(null);
+  const pendingUpdateRef = useRef(null);
 
   const backgroundStyle = showGrid
     ? {
@@ -23,6 +25,15 @@ export default function Canvas({
       backgroundSize: '40px 40px',
     }
     : { backgroundColor: '#1f1f1f' };
+
+  const performUpdate = useCallback(() => {
+    frameRef.current = null;
+    const interaction = interactionRef.current;
+    if (!interaction || !pendingUpdateRef.current) return;
+
+    onUpdate(interaction.id, pendingUpdateRef.current);
+    pendingUpdateRef.current = null;
+  }, [onUpdate]);
 
   const handlePointerMove = useCallback(
     (event) => {
@@ -35,10 +46,14 @@ export default function Canvas({
       const deltaX = (event.clientX - interaction.startClientX) / zoom;
       const deltaY = (event.clientY - interaction.startClientY) / zoom;
 
+      let updatePayload = null;
+
       if (interaction.type === 'drag') {
         const nextX = clamp(interaction.originX + deltaX, 0, Math.max(0, width - interaction.width));
         const nextY = clamp(interaction.originY + deltaY, 0, Math.max(0, height - interaction.height));
-        onUpdate(interaction.id, { x: Math.round(nextX), y: Math.round(nextY) });
+
+        updatePayload = { x: Math.round(nextX), y: Math.round(nextY) };
+
       } else if (interaction.type === 'resize') {
         const handle = interaction.handle;
         const rotation = interaction.rotation || 0;
@@ -109,15 +124,22 @@ export default function Canvas({
         const newX = interaction.originX + shiftX - finalDW / 2;
         const newY = interaction.originY + shiftY - finalDH / 2;
 
-        onUpdate(interaction.id, {
+        updatePayload = {
           x: Math.round(newX),
           y: Math.round(newY),
           width: newWidth,
           height: newHeight,
-        });
+        };
+      }
+
+      if (updatePayload) {
+        pendingUpdateRef.current = updatePayload;
+        if (!frameRef.current) {
+          frameRef.current = requestAnimationFrame(performUpdate);
+        }
       }
     },
-    [onUpdate, width, height, zoom]
+    [onUpdate, width, height, zoom, performUpdate]
   );
 
   const handlePointerUp = useCallback(
@@ -130,83 +152,23 @@ export default function Canvas({
         return;
       }
 
+      // Cancel any pending frame
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+      // If there's a pending update that hasn't run, run it now?
+      // Usually better to just drop it or run it. Let's run it to be safe (ensure final pos).
+      if (pendingUpdateRef.current) {
+        onUpdate(interaction.id, pendingUpdateRef.current);
+        pendingUpdateRef.current = null;
+      }
+
       interactionRef.current = null;
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
     },
-    [handlePointerMove] // removed handlePointerUp from dep array to avoid circular dependency if possible, but actually we need it. 
-    // Usually we define handlePointerMove/Up before using them. They are defined.
-  );
-
-  // Need to make sure handlePointerUp has access to the *interaction* ref, which is stable. 
-  // But wait, handlePointerMove depends on onUpdate. 
-  // If we addEventListener, we need to remove the *same* listener.
-  // If handlePointerMove changes during drag (e.g. if zoom changes), we are in trouble.
-  // But zoom triggers re-render. 
-  // Let's assume zoom doesn't change during drag.
-
-  // Actually, to be safe, we should use a Ref to hold the current listeners or use a stable wrapper.
-  // But given standard usage, onUpdate is now stable. width/height/zoom assumed stable during drag.
-
-  // We need to add handlePointerMove to dependency of handlePointerUp? No.
-  // We need to update existing startDrag/Resize to add listeners.
-
-  const startDrag = useCallback(
-    (event, element) => {
-      if (event.button !== 0) return;
-      if (element.locked) return;
-
-      event.stopPropagation();
-      event.preventDefault();
-      onSelect(element.id);
-
-      interactionRef.current = {
-        type: 'drag',
-        id: element.id,
-        pointerId: event.pointerId,
-        startClientX: event.clientX,
-        startClientY: event.clientY,
-        originX: element.x || 0,
-        originY: element.y || 0,
-        width: element.width || 0,
-        height: element.height || 0,
-      };
-
-      window.addEventListener('pointermove', handlePointerMove);
-      window.addEventListener('pointerup', handlePointerUp);
-    },
-    [onSelect, handlePointerMove, handlePointerUp]
-  );
-
-  const startResize = useCallback(
-    (event, element, handle) => {
-      if (event.button !== 0) return;
-      if (element.locked) return;
-
-      event.stopPropagation();
-      event.preventDefault();
-      onSelect(element.id);
-
-      interactionRef.current = {
-        type: 'resize',
-        id: element.id,
-        handle,
-        pointerId: event.pointerId,
-        startClientX: event.clientX,
-        startClientY: event.clientY,
-        originX: element.x || 0,
-        originY: element.y || 0,
-        originWidth: element.width || 0,
-        originHeight: element.height || 0,
-        rotation: element.rotation || 0,
-        constrainProportions: element.constrainProportions,
-        aspect: (element.width || 1) / (element.height || 1),
-      };
-
-      window.addEventListener('pointermove', handlePointerMove);
-      window.addEventListener('pointerup', handlePointerUp);
-    },
-    [onSelect, handlePointerMove, handlePointerUp]
+    [handlePointerMove, onUpdate]
   );
 
   // Cleanup listeners on unmount
@@ -214,6 +176,9 @@ export default function Canvas({
     return () => {
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current);
+      }
     };
   }, [handlePointerMove, handlePointerUp]);
 
@@ -234,7 +199,7 @@ export default function Canvas({
           {elements.map((el, index) => (
             <div
               key={el.id}
-              className={`absolute cursor-move transition-all duration-150 ${selectedId === el.id
+              className={`absolute cursor-move ${selectedId === el.id
                 ? 'ring-2 ring-purple-400 shadow-lg'
                 : 'ring-1 ring-transparent hover:ring-purple-200'
                 }`}
