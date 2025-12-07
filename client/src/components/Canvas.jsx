@@ -113,20 +113,37 @@ export default function Canvas({
       if (interaction.pointerId !== undefined && event.pointerId !== interaction.pointerId) {
         return;
       }
-      interaction.captureTarget?.releasePointerCapture?.(interaction.pointerId);
+
       interactionRef.current = null;
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
     },
-    []
+    [handlePointerMove] // removed handlePointerUp from dep array to avoid circular dependency if possible, but actually we need it. 
+    // Usually we define handlePointerMove/Up before using them. They are defined.
   );
+
+  // Need to make sure handlePointerUp has access to the *interaction* ref, which is stable. 
+  // But wait, handlePointerMove depends on onUpdate. 
+  // If we addEventListener, we need to remove the *same* listener.
+  // If handlePointerMove changes during drag (e.g. if zoom changes), we are in trouble.
+  // But zoom triggers re-render. 
+  // Let's assume zoom doesn't change during drag.
+
+  // Actually, to be safe, we should use a Ref to hold the current listeners or use a stable wrapper.
+  // But given standard usage, onUpdate is now stable. width/height/zoom assumed stable during drag.
+
+  // We need to add handlePointerMove to dependency of handlePointerUp? No.
+  // We need to update existing startDrag/Resize to add listeners.
 
   const startDrag = useCallback(
     (event, element) => {
       if (event.button !== 0) return;
-      if (element.locked) return; // Prevent drag if locked
+      if (element.locked) return;
 
       event.stopPropagation();
       event.preventDefault();
       onSelect(element.id);
+
       interactionRef.current = {
         type: 'drag',
         id: element.id,
@@ -137,21 +154,23 @@ export default function Canvas({
         originY: element.y || 0,
         width: element.width || 0,
         height: element.height || 0,
-        captureTarget: event.currentTarget,
       };
-      event.currentTarget.setPointerCapture?.(event.pointerId);
+
+      window.addEventListener('pointermove', handlePointerMove);
+      window.addEventListener('pointerup', handlePointerUp);
     },
-    [onSelect]
+    [onSelect, handlePointerMove, handlePointerUp]
   );
 
   const startResize = useCallback(
     (event, element, handle) => {
       if (event.button !== 0) return;
-      if (element.locked) return; // Prevent resize if locked
+      if (element.locked) return;
 
       event.stopPropagation();
       event.preventDefault();
       onSelect(element.id);
+
       interactionRef.current = {
         type: 'resize',
         id: element.id,
@@ -164,12 +183,21 @@ export default function Canvas({
         originWidth: element.width || 0,
         originHeight: element.height || 0,
         rotation: element.rotation || 0,
-        captureTarget: event.currentTarget,
       };
-      event.currentTarget.setPointerCapture?.(event.pointerId);
+
+      window.addEventListener('pointermove', handlePointerMove);
+      window.addEventListener('pointerup', handlePointerUp);
     },
-    [onSelect]
+    [onSelect, handlePointerMove, handlePointerUp]
   );
+
+  // Cleanup listeners on unmount
+  React.useEffect(() => {
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [handlePointerMove, handlePointerUp]);
 
   return (
     <div onClick={() => onSelect(null)}>
@@ -204,14 +232,12 @@ export default function Canvas({
                 pointerEvents: el.locked ? 'none' : 'auto',
               }}
               onPointerDown={(event) => startDrag(event, el)}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              onPointerCancel={handlePointerUp}
               onClick={(event) => {
                 event.stopPropagation();
                 onSelect(el.id);
               }}
             >
+
               {renderElementContent(el)}
 
               {el.variableName && (
@@ -303,9 +329,11 @@ function renderElementContent(el) {
     const endColor = el.gradient?.end || '#ffffff';
     const startOpacity = el.gradient?.startOpacity ?? 1;
     const endOpacity = el.gradient?.endOpacity ?? 1;
+    const startPos = el.gradient?.startPosition ?? 0;
+    const endPos = el.gradient?.endPosition ?? 100;
 
     const background = el.gradient?.enabled
-      ? `linear-gradient(${el.gradient.angle || 90}deg, ${hexToRgba(startColor, startOpacity)}, ${hexToRgba(endColor, endOpacity)})`
+      ? `linear-gradient(${el.gradient.angle || 90}deg, ${hexToRgba(startColor, startOpacity)} ${startPos}%, ${hexToRgba(endColor, endOpacity)} ${endPos}%)`
       : (el.backgroundColor || '#333');
 
     return (

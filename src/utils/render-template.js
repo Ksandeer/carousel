@@ -61,7 +61,9 @@ function renderTemplate(template, data = {}) {
           const endColor = el.gradient.end || '#ffffff';
           const startOpacity = el.gradient.startOpacity ?? 1;
           const endOpacity = el.gradient.endOpacity ?? 1;
-          backgroundStyle = `background: linear-gradient(${el.gradient.angle || 90}deg, ${hexToRgba(startColor, startOpacity)}, ${hexToRgba(endColor, endOpacity)});`;
+          const startPos = el.gradient.startPosition ?? 0;
+          const endPos = el.gradient.endPosition ?? 100;
+          backgroundStyle = `background: linear-gradient(${el.gradient.angle || 90}deg, ${hexToRgba(startColor, startOpacity)} ${startPos}%, ${hexToRgba(endColor, endOpacity)} ${endPos}%);`;
         } else {
           backgroundStyle = `background-color: ${el.backgroundColor || '#000'};`;
         }

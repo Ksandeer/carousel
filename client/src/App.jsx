@@ -120,9 +120,9 @@ function App() {
     setSelectedId(newElement.id);
   };
 
-  const updateElement = (id, updates) => {
+  const updateElement = useCallback((id, updates) => {
     setElements((prev) => prev.map((el) => (el.id === id ? { ...el, ...updates } : el)));
-  };
+  }, []);
 
   const removeElement = (id) => {
     setElements((prev) => prev.filter((el) => el.id !== id));

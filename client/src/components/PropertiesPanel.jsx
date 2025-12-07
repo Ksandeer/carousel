@@ -794,6 +794,18 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                     />
                     <div className="text-xs text-gray-500 w-8 text-right">{Math.round((element.gradient?.startOpacity ?? 1) * 100)}%</div>
                   </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <label className="text-xs text-gray-500 w-12">Pos.</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={element.gradient?.startPosition ?? 0}
+                      onChange={(e) => onChange({ gradient: { ...element.gradient, startPosition: parseInt(e.target.value) } })}
+                      className="flex-1 accent-purple-600"
+                    />
+                    <div className="text-xs text-gray-500 w-8 text-right">{element.gradient?.startPosition ?? 0}%</div>
+                  </div>
                 </Field>
                 <Field label="End Color">
                   <div className="flex gap-2 mb-2">
@@ -830,6 +842,18 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                       className="flex-1 accent-purple-600"
                     />
                     <div className="text-xs text-gray-500 w-8 text-right">{Math.round((element.gradient?.endOpacity ?? 1) * 100)}%</div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <label className="text-xs text-gray-500 w-12">Pos.</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={element.gradient?.endPosition ?? 100}
+                      onChange={(e) => onChange({ gradient: { ...element.gradient, endPosition: parseInt(e.target.value) } })}
+                      className="flex-1 accent-purple-600"
+                    />
+                    <div className="text-xs text-gray-500 w-8 text-right">{element.gradient?.endPosition ?? 100}%</div>
                   </div>
                 </Field>
                 <Field label="Angle">
