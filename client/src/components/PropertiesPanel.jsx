@@ -690,6 +690,19 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                 />
                 <div className="text-right text-xs text-gray-500">{element.stroke.width || 0}px</div>
               </Field>
+
+              {/* Contour Mode for Images */}
+              {isImage && (
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <label className="text-xs text-gray-500">Contour Mode</label>
+                  <input
+                    type="checkbox"
+                    checked={element.contour || false}
+                    onChange={(e) => onChange({ contour: e.target.checked })}
+                    className="w-4 h-4 accent-purple-600 rounded"
+                  />
+                </div>
+              )}
             </>
           )}
         </div>

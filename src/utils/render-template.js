@@ -21,11 +21,33 @@ function renderTemplate(template, data = {}) {
 
       if (el.type === 'image') {
         const source = resolveContent(el, data);
-        const shadowStyle = el.shadow ? `box-shadow: ${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'};` : '';
+        const isContour = el.contour;
+
+        // Filter logic
+        let filterStyle = '';
+        if (isContour) {
+          const filters = [];
+          if (el.stroke) {
+            const { width, color } = el.stroke;
+            filters.push(`drop-shadow(-${width}px 0 0 ${color})`);
+            filters.push(`drop-shadow(${width}px 0 0 ${color})`);
+            filters.push(`drop-shadow(0 -${width}px 0 ${color})`);
+            filters.push(`drop-shadow(0 ${width}px 0 ${color})`);
+          }
+          if (el.shadow) {
+            filters.push(`drop-shadow(${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'})`);
+          }
+          if (filters.length > 0) {
+            filterStyle = `filter: ${filters.join(' ')};`;
+          }
+        }
+
+        const shadowStyle = (!isContour && el.shadow) ? `box-shadow: ${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'};` : '';
+        const borderStyle = (!isContour && el.stroke) ? `border: ${el.stroke.width}px solid ${el.stroke.color};` : '';
+
         return `
-          <div style="${style} ${shadowStyle}">
-            <img src="${source}" style="width: 100%; height: 100%; object-fit: ${el.fit || 'cover'}; border-radius: ${el.borderRadius || 0
-          }px;" />
+          <div style="${style} ${shadowStyle} ${borderStyle}">
+            <img src="${source}" style="width: 100%; height: 100%; object-fit: ${el.fit || 'cover'}; border-radius: ${el.borderRadius || 0}px; ${filterStyle}" />
           </div>
         `;
       }

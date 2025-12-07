@@ -243,8 +243,36 @@ export default function Canvas({
   );
 }
 
+function getDropShadowFilter(stroke, shadow, isContour) {
+  if (!isContour) return undefined;
+
+  const filters = [];
+
+  // Simulate stroke with 4-way drop-shadow
+  if (stroke) {
+    const { width, color } = stroke;
+    // Using 4 shadows (top, bottom, left, right) + 4 diagonals for better coverage? 
+    // Actually 8-way is smoother but expensive. Let's try 4 first.
+    // Small strokes 4 is fine. Large strokes need more.
+    // Let's stick to 4 cardinal directions for simplicity.
+    filters.push(`drop-shadow(-${width}px 0 0 ${color})`);
+    filters.push(`drop-shadow(${width}px 0 0 ${color})`);
+    filters.push(`drop-shadow(0 -${width}px 0 ${color})`);
+    filters.push(`drop-shadow(0 ${width}px 0 ${color})`);
+  }
+
+  if (shadow) {
+    filters.push(`drop-shadow(${shadow.x || 0}px ${shadow.y || 0}px ${shadow.blur || 0}px ${shadow.color || '#000000'})`);
+  }
+
+  return filters.length > 0 ? filters.join(' ') : undefined;
+}
+
 function renderElementContent(el) {
   if (el.type === 'image') {
+    const isContour = el.contour;
+    const filter = getDropShadowFilter(el.stroke, el.shadow, isContour);
+
     return (
       <img
         src={el.content}
@@ -253,8 +281,11 @@ function renderElementContent(el) {
         style={{
           objectFit: el.fit || 'cover',
           borderRadius: el.borderRadius || 0,
-          boxShadow: el.shadow ? `${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'}` : undefined,
-          border: el.stroke ? `${el.stroke.width}px solid ${el.stroke.color}` : undefined,
+          // If contour mode, use filter for both stroke and shadow
+          // If not, use standard box-shadow and border
+          filter: filter,
+          boxShadow: !isContour && el.shadow ? `${el.shadow.x || 0}px ${el.shadow.y || 0}px ${el.shadow.blur || 0}px ${el.shadow.color || '#000000'}` : undefined,
+          border: !isContour && el.stroke ? `${el.stroke.width}px solid ${el.stroke.color}` : undefined,
         }}
       />
     );
