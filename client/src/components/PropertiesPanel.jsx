@@ -879,10 +879,22 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                           )}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
                           {/* Position */}
-                          <div className="flex items-center gap-1">
-                            <span className="text-[10px] text-gray-500 w-6">Pos</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-gray-500 w-8">Pos</span>
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={stop.position}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value);
+                                const newStops = (element.gradient?.stops || arr).map(s => s.id === stop.id || (s === stop) ? { ...s, position: val } : s);
+                                onChange({ gradient: { ...element.gradient, stops: newStops } });
+                              }}
+                              className="flex-1 accent-purple-600 h-1.5"
+                            />
                             <input
                               type="number"
                               min="0"
@@ -893,12 +905,24 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                                 const newStops = (element.gradient?.stops || arr).map(s => s.id === stop.id || (s === stop) ? { ...s, position: val } : s);
                                 onChange({ gradient: { ...element.gradient, stops: newStops } });
                               }}
-                              className="w-full bg-white border rounded px-1 text-xs"
+                              className="w-10 bg-white border rounded px-1 text-xs text-right"
                             />
                           </div>
                           {/* Opacity */}
-                          <div className="flex items-center gap-1">
-                            <span className="text-[10px] text-gray-500 w-6">Opac</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-gray-500 w-8">Opac</span>
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={Math.round(stop.opacity * 100)}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value) / 100;
+                                const newStops = (element.gradient?.stops || arr).map(s => s.id === stop.id || (s === stop) ? { ...s, opacity: val } : s);
+                                onChange({ gradient: { ...element.gradient, stops: newStops } });
+                              }}
+                              className="flex-1 accent-purple-600 h-1.5"
+                            />
                             <input
                               type="number"
                               min="0"
@@ -909,7 +933,7 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                                 const newStops = (element.gradient?.stops || arr).map(s => s.id === stop.id || (s === stop) ? { ...s, opacity: val } : s);
                                 onChange({ gradient: { ...element.gradient, stops: newStops } });
                               }}
-                              className="w-full bg-white border rounded px-1 text-xs"
+                              className="w-10 bg-white border rounded px-1 text-xs text-right"
                             />
                           </div>
                         </div>
