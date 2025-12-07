@@ -676,35 +676,18 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                 }}
                 className={`flex-1 text-xs py-1.5 rounded-md transition-all ${element.gradient?.enabled ? 'bg-white shadow text-purple-700 font-medium' : 'text-gray-500'}`}
               >
-                Gradient
               </button>
             </div>
 
             {!element.gradient?.enabled ? (
-              <Field label="Color">
-                <div className="flex gap-2">
-                  <div
-                    className="w-10 h-10 rounded-lg border shadow-sm flex-shrink-0"
-                    style={{ backgroundColor: element.backgroundColor || '#000000' }}
-                  >
-                    <input
-                      type="color"
-                      value={element.backgroundColor || '#000000'}
-                      onChange={(e) => onChange({ backgroundColor: e.target.value })}
-                      className="opacity-0 w-full h-full cursor-pointer"
-                    />
-                  </div>
-                  <div className="flex-1 border rounded-lg flex items-center px-3 bg-gray-50">
-                    <span className="text-gray-400 mr-2">#</span>
-                    <input
-                      type="text"
-                      value={(element.backgroundColor || '#000000').replace('#', '').toUpperCase()}
-                      onChange={(e) => onChange({ backgroundColor: `#${e.target.value}` })}
-                      className="bg-transparent w-full outline-none text-sm font-mono"
-                    />
-                  </div>
-                </div>
-              </Field>
+              <ColorField
+                label={t('properties.color') || 'Color'}
+                value={element.backgroundColor}
+                onChange={(color) => onChange({ backgroundColor: color })}
+                dynamicFlag={element.backgroundColorDynamic}
+                onDynamicChange={(checked) => onChange({ backgroundColorDynamic: checked })}
+                t={t}
+              />
             ) : (
               <>
                 {/* Gradient Preview Bar */}
