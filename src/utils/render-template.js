@@ -203,6 +203,7 @@ transform: rotate(${el.rotation || 0}deg);
 
         return text.replace(quoteRegex, (match, guillemet, regular) => {
           const content = guillemet || regular;
+          // Note: content is already escaped from parseHighlightedText, don't escape again
           return `<span style="display: block; border-left: ${borderWidth}px solid ${borderColor}; background-color: ${bgColor}; padding: ${paddingTop}px ${paddingRight}px ${paddingBottom}px ${paddingLeft}px; margin: 8px 0;">${content}</span>`;
         });
       };
