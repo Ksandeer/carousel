@@ -108,7 +108,7 @@ transform: rotate(${el.rotation || 0}deg);
         const imgBorderStyle = (!isContour && el.stroke) ? `border: ${el.stroke.width}px solid ${el.stroke.color}; ` : '';
 
         return `
-  < div style = "${style}" >
+  <div style="${style}">
     <div style="width: 100%; height: 100%; position: relative; overflow: hidden;">
       <img
         src="${source}"
