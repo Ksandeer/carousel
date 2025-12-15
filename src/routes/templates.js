@@ -125,15 +125,21 @@ router.post("/:id/render", async (ctx) => {
       }
     }
 
-    // Always return PNG image
-    ctx.set("Content-Type", "image/png");
+    // Check if client wants coordinates in response body via query parameter
+    const includeCoordinates = ctx.query.includeCoordinates === 'true';
 
-    // If coordinates exist, include them in a custom header
-    if (textCoordinates.length > 0) {
-      ctx.set("X-Text-Coordinates", JSON.stringify(textCoordinates));
+    // If coordinates exist and client wants them in body, return JSON
+    if (textCoordinates.length > 0 && includeCoordinates) {
+      ctx.set("Content-Type", "application/json");
+      ctx.body = {
+        image: buffer.toString('base64'),
+        coordinates: textCoordinates
+      };
+    } else {
+      // Otherwise return PNG (default behavior for backward compatibility)
+      ctx.set("Content-Type", "image/png");
+      ctx.body = buffer;
     }
-
-    ctx.body = buffer;
   } finally {
     await page.close();
   }
@@ -186,15 +192,21 @@ router.post("/render", async (ctx) => {
       }
     }
 
-    // Always return PNG image
-    ctx.set("Content-Type", "image/png");
+    // Check if client wants coordinates in response body via query parameter
+    const includeCoordinates = ctx.query.includeCoordinates === 'true';
 
-    // If coordinates exist, include them in a custom header
-    if (textCoordinates.length > 0) {
-      ctx.set("X-Text-Coordinates", JSON.stringify(textCoordinates));
+    // If coordinates exist and client wants them in body, return JSON
+    if (textCoordinates.length > 0 && includeCoordinates) {
+      ctx.set("Content-Type", "application/json");
+      ctx.body = {
+        image: buffer.toString('base64'),
+        coordinates: textCoordinates
+      };
+    } else {
+      // Otherwise return PNG (default behavior for backward compatibility)
+      ctx.set("Content-Type", "image/png");
+      ctx.body = buffer;
     }
-
-    ctx.body = buffer;
   } finally {
     await page.close();
   }
