@@ -140,6 +140,11 @@ router.post("/:id/render", async (ctx) => {
       ctx.set("Content-Type", "image/png");
       ctx.body = buffer;
     }
+
+    // Include coordinates in header if any elements have exportCoordinates
+    if (textCoordinates.length > 0) {
+      ctx.set("X-Text-Coordinates", JSON.stringify(textCoordinates));
+    }
   } finally {
     await page.close();
   }
@@ -194,6 +199,12 @@ router.post("/render", async (ctx) => {
 
     // Always return PNG file
     ctx.set("Content-Type", "image/png");
+
+    // Include coordinates in header if any elements have exportCoordinates
+    if (textCoordinates.length > 0) {
+      ctx.set("X-Text-Coordinates", JSON.stringify(textCoordinates));
+    }
+
     ctx.body = buffer;
   } finally {
     await page.close();
