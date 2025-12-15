@@ -5,10 +5,13 @@ services:
     user: root
     environment:
       - PUPPETEER_CACHE_DIR=/home/pptruser/.cache/puppeteer
+      - BIND_HOST=0.0.0.0
+      - BIND_PORT=2305
+      - ENV_NAME=development
+      - GOOGLE_CLOUD_LOGGING=false
     volumes:
       - ./src:/service/src
       - ./data:/service/data
-      - ./.env:/service/.env
     build:
       context: .
       dockerfile: Dockerfile

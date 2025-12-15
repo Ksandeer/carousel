@@ -23,6 +23,7 @@ USER pptruser
 RUN yarn install --frozen-lockfile
 
 COPY . .
+RUN touch .env
 COPY --from=client-build /client/dist ./client/dist
 
 ENV PORT 2305
