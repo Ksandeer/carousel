@@ -258,6 +258,7 @@ ${overflowWrapStyle}
     })
     .join('');
 
+
   const fittyScript = `
   <script>
   document.querySelectorAll('.fitty-text').forEach(el => {
@@ -266,22 +267,26 @@ ${overflowWrapStyle}
     let max = 200;
     let optimal = 16;
 
-    // Reset to base size
-    el.style.fontSize = '10px';
-
+    // Binary search for optimal font size
     while (min <= max) {
       const mid = Math.floor((min + max) / 2);
       el.style.fontSize = mid + 'px';
-      if (el.scrollHeight <= container.clientHeight && el.scrollWidth <= container.clientWidth) {
+      
+      // Check if text fits within container
+      const fitsHeight = el.scrollHeight <= container.clientHeight;
+      const fitsWidth = el.scrollWidth <= container.clientWidth;
+      
+      if (fitsHeight && fitsWidth) {
         optimal = mid;
         min = mid + 1;
       } else {
         max = mid - 1;
       }
     }
+    
     el.style.fontSize = optimal + 'px';
   });
-    </script >
+    </script>
   `;
 
   return `
