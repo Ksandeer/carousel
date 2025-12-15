@@ -266,10 +266,6 @@ ${overflowWrapStyle}
   document.querySelectorAll('.fitty-text').forEach(el => {
     const container = el.parentElement;
     
-    // Get original line-height value
-    const computedStyle = window.getComputedStyle(el);
-    const originalLineHeight = computedStyle.lineHeight;
-    
     // Always search full range for optimal size (fully adaptive)
     let min = 8;
     let max = 300;
@@ -295,13 +291,8 @@ ${overflowWrapStyle}
       }
     }
     
-    // Apply optimal size
+    // Apply optimal size (line-height will scale automatically)
     el.style.fontSize = optimal + 'px';
-    
-    // Restore original line-height
-    if (originalLineHeight !== 'normal') {
-      el.style.lineHeight = originalLineHeight;
-    }
   });
     </script>
   `;
