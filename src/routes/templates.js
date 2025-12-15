@@ -192,24 +192,43 @@ router.post("/render", async (ctx) => {
       }
     }
 
-    // Check if client wants coordinates in response body via query parameter
-    const includeCoordinates = ctx.query.includeCoordinates === 'true';
-
-    // If coordinates exist and client wants them in body, return JSON
-    if (textCoordinates.length > 0 && includeCoordinates) {
-      ctx.set("Content-Type", "application/json");
-      ctx.body = {
-        image: buffer.toString('base64'),
-        coordinates: textCoordinates
-      };
-    } else {
-      // Otherwise return PNG (default behavior for backward compatibility)
-      ctx.set("Content-Type", "image/png");
-      ctx.body = buffer;
-    }
+    // Always return PNG file
+    ctx.set("Content-Type", "image/png");
+    ctx.body = buffer;
   } finally {
     await page.close();
   }
+});
+
+// Get coordinates only (without rendering)
+router.post("/coordinates", async (ctx) => {
+  const { template } = ctx.request.body;
+
+  if (!template) {
+    ctx.status = 400;
+    ctx.body = { error: "Template JSON is required in request body" };
+    return;
+  }
+
+  // Extract coordinates for text elements with exportCoordinates flag
+  const textCoordinates = [];
+  if (template.elements && Array.isArray(template.elements)) {
+    for (const element of template.elements) {
+      if (element.type === 'text' && element.exportCoordinates) {
+        textCoordinates.push({
+          id: element.id,
+          variableName: element.variableName || element.id,
+          x: element.x || 0,
+          y: element.y || 0,
+          width: element.width || 0,
+          height: element.height || 0
+        });
+      }
+    }
+  }
+
+  ctx.set("Content-Type", "application/json");
+  ctx.body = { coordinates: textCoordinates };
 });
 
 // Delete template
