@@ -119,7 +119,8 @@ router.post("/:id/render", async (ctx) => {
             x: element.x || 0,
             y: element.y || 0,
             width: element.width || 0,
-            height: element.height || 0
+            height: element.height || 0,
+            bottom: (element.y || 0) + (element.height || 0)
           });
         }
       }
@@ -179,7 +180,8 @@ router.post("/render", async (ctx) => {
             x: element.x || 0,
             y: element.y || 0,
             width: element.width || 0,
-            height: element.height || 0
+            height: element.height || 0,
+            bottom: (element.y || 0) + (element.height || 0)
           });
         }
       }
@@ -220,7 +222,8 @@ router.post("/coordinates", async (ctx) => {
           x: element.x || 0,
           y: element.y || 0,
           width: element.width || 0,
-          height: element.height || 0
+          height: element.height || 0,
+          bottom: (element.y || 0) + (element.height || 0)
         });
       }
     }
