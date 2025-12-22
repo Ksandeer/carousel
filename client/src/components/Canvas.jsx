@@ -611,7 +611,7 @@ const parseQuotes = (input, quoteSettings) => {
   const borderWidth = quoteSettings.borderWidth || 4;
 
   // Match «text» or "text"
-  const quoteRegex = /«([^»]+)»|"([^"]+)"/g;
+  const quoteRegex = /([«"][^»"]+[»"])/g;
 
   // Optimization: check if text contains quotes before splitting
   if (!text.match(quoteRegex)) return text;
@@ -619,25 +619,26 @@ const parseQuotes = (input, quoteSettings) => {
   const parts = text.split(quoteRegex);
 
   return parts.map((part, index) => {
-    // Every 3rd element starting from index 1 or 2 is a quote content
-    if (index % 3 === 1 || index % 3 === 2) {
-      if (part) {
-        return (
-          <span
-            key={index}
-            style={{
-              display: 'block',
-              borderLeft: `${borderWidth}px solid ${borderColor}`,
-              backgroundColor: bgColor,
-              padding: '8px 12px',
-              margin: '8px 0',
-            }}
-          >
-            {part}
-          </span>
-        );
-      }
+    // Check if the part matches a quote pattern
+    if (part.match(/^«.*»$/) || part.match(/^".*"$/)) {
+      // Remove the quotes for display
+      const content = part.slice(1, -1);
+      return (
+        <span
+          key={index}
+          style={{
+            display: 'block',
+            borderLeft: `${borderWidth}px solid ${borderColor}`,
+            backgroundColor: bgColor,
+            padding: '8px 12px',
+            margin: '8px 0',
+          }}
+        >
+          {content}
+        </span>
+      );
     }
+    // Return non-quote parts as is
     return part;
   });
 };

@@ -92,7 +92,12 @@
         "variableName": "Variable Name",
         "posShort": "Pos",
         "opacShort": "Opac",
-        "reverseGradient": "Reverse Gradient"
+        "reverseGradient": "Reverse Gradient",
+        "clearBackground": "Clear background",
+        "enterFontName": "Enter Google Font name...",
+        "enterPreviewText": "Enter test text to preview styles...",
+        "variableNamePlaceholder": "e.g. product_name",
+        "quoteHint": "💡 Use «text» or \"text\" in your content for quotes"
     },
     "layers": {
         "title": "LAYERS",

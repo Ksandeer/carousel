@@ -22,7 +22,6 @@ export default function Toolbar({ onAdd }) {
         <Tooltip key={tool.labelKey} text={t(tool.tooltipKey)} position="right">
           <button
             type="button"
-            title={t(tool.labelKey)}
             className="w-12 h-12 flex items-center justify-center rounded-2xl bg-purple-600 hover:bg-white/20 transition"
             onClick={() => onAdd(tool.type, tool.props)}
           >

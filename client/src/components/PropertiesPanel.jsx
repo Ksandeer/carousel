@@ -123,7 +123,7 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Enter Google Font name..."
+                    placeholder={t('properties.enterFontName')}
                     className="flex-1 border rounded-lg px-3 py-2 text-sm"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -157,7 +157,7 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
               <textarea
                 value={element.content_preview || ''}
                 onChange={(e) => onChange({ content_preview: e.target.value })}
-                placeholder="Enter test text to preview styles..."
+                placeholder={t('properties.enterPreviewText')}
                 className="w-full border rounded-lg px-3 py-2 text-sm h-20 resize-none"
               />
               <p className="text-xs text-gray-400">
@@ -248,10 +248,10 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                 onChange={(e) => onChange({ textTransform: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 text-sm"
               >
-                <option value="none">No Transformation</option>
-                <option value="uppercase">Uppercase</option>
-                <option value="lowercase">Lowercase</option>
-                <option value="capitalize">Capitalize</option>
+                <option value="none">{t('properties.noTransformation')}</option>
+                <option value="uppercase">{t('properties.uppercase')}</option>
+                <option value="lowercase">{t('properties.lowercase')}</option>
+                <option value="capitalize">{t('properties.capitalize')}</option>
               </select>
             </div>
 
@@ -316,7 +316,7 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                 </Field>
               </div>
               <p className="text-xs text-gray-400 mt-2">
-                💡 Use **text** in your content to highlight words with this color
+                {t('properties.highlightingHint')}
               </p>
             </div>
           </CollapsibleSection>
@@ -382,7 +382,7 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                 </Field>
 
                 <p className="text-xs text-gray-400 mt-2">
-                  💡 Use «text» or "text" in your content for quotes
+                  {t('properties.quoteHint')}
                 </p>
               </div>
             )}
@@ -463,7 +463,7 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
                 onClick={() => onChange({ backgroundColor: '', backgroundOpacity: 1, padding: 0, borderRadius: 0 })}
                 className="text-xs text-gray-500 hover:text-red-500 pt-2"
               >
-                Clear background
+                {t('properties.clearBackground')}
               </button>
             </div>
 
@@ -1061,7 +1061,7 @@ export default function PropertiesPanel({ element, onChange, canvasSize }) {
             value={element.variableName || ''}
             onChange={(e) => onChange({ variableName: e.target.value })}
             className="w-full border rounded-lg px-3 py-2 text-sm bg-gray-50"
-            placeholder="e.g. product_name"
+            placeholder={t('properties.variableNamePlaceholder')}
           />
         </Field>
       </div>
