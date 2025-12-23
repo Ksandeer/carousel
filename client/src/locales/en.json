@@ -8,15 +8,15 @@
     "topbar": {
         "templateName": "Template Name",
         "preset": "Preset",
-        "customSize": "Custom Size",
-        "instagramStory": "Instagram Story",
-        "poster": "Poster",
-        "a4Portrait": "A4 Portrait",
         "width": "Width",
         "height": "Height",
         "lockDimensions": "Lock Dimensions",
         "showGrid": "Show Grid",
-        "save": "Save"
+        "save": "Save",
+        "custom": "Custom Size",
+        "story": "Instagram Story",
+        "poster": "Poster",
+        "a4": "A4 Portrait"
     },
     "properties": {
         "selectLayer": "Select a layer to edit its properties.",

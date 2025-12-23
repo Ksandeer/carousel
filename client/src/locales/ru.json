@@ -8,15 +8,15 @@
     "topbar": {
         "templateName": "Название шаблона",
         "preset": "Пресет",
-        "customSize": "Свой размер",
-        "instagramStory": "Instagram Story",
-        "poster": "Постер",
-        "a4Portrait": "A4 Портрет",
         "width": "Ширина",
         "height": "Высота",
         "lockDimensions": "Заблокировать пропорции",
         "showGrid": "Показать сетку",
-        "save": "Сохранить"
+        "save": "Сохранить",
+        "custom": "Свой размер",
+        "story": "Instagram Story",
+        "poster": "Постер",
+        "a4": "A4 Портрет"
     },
     "properties": {
         "selectLayer": "Выберите слой для редактирования свойств.",
